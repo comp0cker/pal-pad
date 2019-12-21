@@ -15,6 +15,7 @@
 		B30BF54E23AD5CA7008F7E60 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B30BF54C23AD5CA7008F7E60 /* LaunchScreen.storyboard */; };
 		B30BF55923AD5CA7008F7E60 /* vmaxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BF55823AD5CA7008F7E60 /* vmaxTests.swift */; };
 		B30BF56423AD5CA7008F7E60 /* vmaxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BF56323AD5CA7008F7E60 /* vmaxUITests.swift */; };
+		B30BF57223AD9F3F008F7E60 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BF57123AD9F3F008F7E60 /* SearchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		B30BF55F23AD5CA7008F7E60 /* vmaxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = vmaxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B30BF56323AD5CA7008F7E60 /* vmaxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmaxUITests.swift; sourceTree = "<group>"; };
 		B30BF56523AD5CA7008F7E60 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B30BF57123AD9F3F008F7E60 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +104,7 @@
 				B30BF54123AD5CA5008F7E60 /* AppDelegate.swift */,
 				B30BF54323AD5CA5008F7E60 /* SceneDelegate.swift */,
 				B30BF54523AD5CA5008F7E60 /* ContentView.swift */,
+				B30BF57123AD9F3F008F7E60 /* SearchView.swift */,
 				B30BF54723AD5CA7008F7E60 /* Assets.xcassets */,
 				B30BF54C23AD5CA7008F7E60 /* LaunchScreen.storyboard */,
 				B30BF54F23AD5CA7008F7E60 /* Info.plist */,
@@ -267,6 +270,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B30BF57223AD9F3F008F7E60 /* SearchView.swift in Sources */,
 				B30BF54223AD5CA5008F7E60 /* AppDelegate.swift in Sources */,
 				B30BF54423AD5CA5008F7E60 /* SceneDelegate.swift in Sources */,
 				B30BF54623AD5CA5008F7E60 /* ContentView.swift in Sources */,
