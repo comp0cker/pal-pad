@@ -10,20 +10,44 @@ import SwiftUI
 
 struct ContentView: View {
     @State var showSearch = false
+    @State var deck: [Image] = []
     
     func searchOn() {
         showSearch = true
     }
     
+    func rowCount() -> Int {
+        return self.deck.count / 3 + 1
+    }
+    
+    func colCount(rowNumber: Int) -> Int {
+        if 3 + rowNumber > self.deck.count {
+            return self.deck.count
+        }
+        return 3
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
-                Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+                Text("Welcome to vmax!")
+                Text("Add some cards to get started")
                 Button(action: searchOn) {
                     Text("Add card")
                 }
-                NavigationLink (destination: SearchView(showSearch: $showSearch), isActive: $showSearch) {
+                NavigationLink (destination: SearchView(showSearch: $showSearch, deck: $deck), isActive: $showSearch) {
                     EmptyView()
+                }
+                ScrollView {
+                    VStack {
+                        ForEach (0 ..< self.rowCount(), id: \.self) { rowNumber in
+                            HStack {
+                                ForEach (0 ..< self.colCount(rowNumber: rowNumber), id: \.self) { columnNumber in
+                                    self.deck[rowNumber * 3 + columnNumber]
+                                }
+                            }
+                        }
+                    }
                 }
             }.navigationBarTitle("vmax")
         }

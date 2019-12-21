@@ -19,6 +19,7 @@ struct SearchView: View {
     @State private var imageHeight: CGFloat = 0
     
     @Binding var showSearch: Bool
+    @Binding var deck: [Image]
     
     func fetchImage(url: String) {
         let imageUrl = URL(string: url)!
@@ -49,7 +50,7 @@ struct SearchView: View {
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error == nil {
                 let json = try? JSONSerialization.jsonObject(with: data!, options: [])
-                print(json)
+//                print(json)
                 if let dictionary = json as? [String: Any] {
                     if let cards = dictionary["cards"] as? [[String: Any]] {
                         for (card) in cards {
@@ -73,7 +74,11 @@ struct SearchView: View {
         task.resume()
     }
     
-    func searchOff() {
+    func searchOff(img: Image) {
+        var newDeck = deck
+        newDeck.append(img)
+        deck = newDeck
+        print(deck)
         showSearch = false
     }
 
@@ -91,8 +96,8 @@ struct SearchView: View {
                     ForEach (0 ..< searchResults.count / 3, id: \.self) { rowNumber in
                         HStack {
                             ForEach (0 ..< 3, id: \.self) { columnNumber in
-                                Button(action: self.searchOff) {
-                                self.searchResults[rowNumber * 3 + columnNumber].renderingMode(.original)
+                                Button(action: {self.searchOff(img: self.searchResults[rowNumber * 3 + columnNumber])}) {
+                                    self.searchResults[rowNumber * 3 + columnNumber].renderingMode(.original)
                                 }
                             }
                         }
