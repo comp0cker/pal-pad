@@ -9,8 +9,10 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var showSearch = false
-    @State var deck: [Image] = []
+    @State var showSearch: Bool = false
+    @State var showSaveDeck: Bool = false
+    @State private var saveDeckName: String = ""
+    @State var deck: [Card] = []
     
     func searchOn() {
         showSearch = true
@@ -27,29 +29,50 @@ struct ContentView: View {
         return 3
     }
     
+    func saveDeck() {
+        showSaveDeck = true
+    }
+    
+    func cardCount(card: Card) -> String {
+        return String(card.count)
+    }
+    
     var body: some View {
-        NavigationView {
-            VStack {
-                Text("Welcome to vmax!")
-                Text("Add some cards to get started")
-                Button(action: searchOn) {
-                    Text("Add card")
-                }
-                NavigationLink (destination: SearchView(showSearch: $showSearch, deck: $deck), isActive: $showSearch) {
-                    EmptyView()
-                }
-                ScrollView {
-                    VStack {
-                        ForEach (0 ..< self.rowCount(), id: \.self) { rowNumber in
-                            HStack {
-                                ForEach (0 ..< self.colCount(rowNumber: rowNumber), id: \.self) { columnNumber in
-                                    self.deck[rowNumber * 3 + columnNumber]
+        VStack {
+            NavigationView {
+                VStack {
+//                    HStack {
+//                        Button(action: saveDeck) {
+//                            Text("Save Deck")
+//                        }
+//                    }
+                    Text("Welcome to vmax!")
+                    Text("Add some cards to get started")
+                    Button(action: searchOn) {
+                        Text("Add card")
+                    }
+                    NavigationLink (destination: SearchView(showSearch: $showSearch, deck: $deck), isActive: $showSearch) {
+                        EmptyView()
+                    }
+                    ScrollView {
+                        VStack {
+                            ForEach (0 ..< self.rowCount(), id: \.self) { rowNumber in
+                                HStack {
+                                    ForEach (0 ..< self.colCount(rowNumber: rowNumber), id: \.self) { columnNumber in
+                                        ZStack {
+                                            self.deck[rowNumber * 3 + columnNumber].image
+                                            Circle()
+                                                .fill(Color.red)
+                                                .frame(width: 100, height: 50)
+                                            Text(self.cardCount(card: self.deck[rowNumber * 3 + columnNumber]))
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }.navigationBarTitle("vmax")
+                }.navigationBarTitle("vmax")
+            }
         }
     }
 }

@@ -8,10 +8,40 @@
 
 import SwiftUI
 
+struct Deck {
+    @State var cards: [Card]
+    
+    func addCard(card: Card) {
+        let duplicateCard =  cards.contains {$0.content == card.content}
+        if duplicateCard {
+            let index = cards.firstIndex {$0.content == card.content}
+            cards[index!].addCard()
+        }
+        else {
+            cards.append(card)
+        }
+    }
+}
+
+struct Card {
+    var content: Data
+    var image: Image
+    @State var count: Int = 1
+    
+    init(content: Data, image: Image) {
+        self.content = content
+        self.image = image
+    }
+    
+    func addCard() {
+        count += 1
+    }
+}
+
 struct SearchView: View {
     @State var image = Image(systemName: "card")
     @State var searchQuery = ""
-    @State var searchResults: [Image] = []
+    @State var searchResults: [Card] = []
     var urlBase = "https://api.pokemontcg.io/v1/"
     var imageUrlBase = "https://images.pokemontcg.io/"
     
@@ -19,7 +49,7 @@ struct SearchView: View {
     @State private var imageHeight: CGFloat = 0
     
     @Binding var showSearch: Bool
-    @Binding var deck: [Image]
+    @Binding var deck: [Card]
     
     func fetchImage(url: String) {
         let imageUrl = URL(string: url)!
@@ -32,7 +62,8 @@ struct SearchView: View {
                 let newImage = UIGraphicsGetImageFromCurrentImageContext()
                 UIGraphicsEndImageContext()
                 
-                self.searchResults.append(Image(uiImage: newImage!))
+                var card = Card(content: data!, image: Image(uiImage: newImage!))
+                self.searchResults.append(card)
             }
         }
         task.resume()
@@ -74,9 +105,9 @@ struct SearchView: View {
         task.resume()
     }
     
-    func searchOff(img: Image) {
+    func searchOff(card: Card) {
         var newDeck = deck
-        newDeck.append(img)
+        newDeck.append(card)
         deck = newDeck
         print(deck)
         showSearch = false
@@ -96,8 +127,8 @@ struct SearchView: View {
                     ForEach (0 ..< searchResults.count / 3, id: \.self) { rowNumber in
                         HStack {
                             ForEach (0 ..< 3, id: \.self) { columnNumber in
-                                Button(action: {self.searchOff(img: self.searchResults[rowNumber * 3 + columnNumber])}) {
-                                    self.searchResults[rowNumber * 3 + columnNumber].renderingMode(.original)
+                                Button(action: {self.searchOff(card: self.searchResults[rowNumber * 3 + columnNumber])}) {
+                                    self.searchResults[rowNumber * 3 + columnNumber].image.renderingMode(.original)
                                 }
                             }
                         }
