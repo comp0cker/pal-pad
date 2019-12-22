@@ -7,22 +7,36 @@
 //
 
 import SwiftUI
+import Combine
 
-class Deck {
-    private var cards: [Card] = []
-    private var cardss: [String] = []
-    private var yuh: String = ""
+func json(from object:Any) -> String? {
+    guard let data = try? JSONSerialization.data(withJSONObject: object, options: []) else {
+        return nil
+    }
+    return String(data: data, encoding: String.Encoding.utf8)
+}
+
+class Deck: ObservableObject {
+    @Published var cards: [Card] = []
     
     func addCard(card: Card) {
-        let duplicateCard =  cards.contains {$0.content == card.content}
+        let duplicateCard =  cards.contains {$0.id == card.id}
         if duplicateCard {
             print("duplicate card!")
-            let index = cards.firstIndex {$0.content == card.content}
-            cards[index!].addCard()
-            // wtf????
+            let index = cards.firstIndex {$0.id == card.id}
+            cards[index!].count += 1
         }
         else {
             cards.append(card)
+        }
+    }
+    
+    func changeCardCount(index: Int, incr: Int) {
+        cards[index].incrCount(incr: incr)
+        
+        // if card count less than zero outta here
+        if cards[index].count <= 0 {
+            cards.remove(at: index)
         }
     }
     
@@ -41,30 +55,28 @@ class Deck {
     func jsonOutput() -> String {
         var dataStrings: [String] = []
         for card in self.cards {
-            print(card.content)
-            var ds = String(data: card.content, encoding: .utf8)!
-            dataStrings.append(ds)
+            print(json(from: card.content)!)
+            dataStrings.append(json(from: card.content)!)
         }
-        guard let data = try? JSONSerialization.data(withJSONObject: dataStrings, options: []) else {
-            return ""
-        }
-        let string = String(data: data, encoding: String.Encoding.utf8)
-        return string!
+        return json(from: dataStrings)!
     }
 }
 
-class Card {
-    var content: Data
-    var image: Image
-    var count: Int = 1
+class Card: ObservableObject {
+    @Published var content: [String: Any]
+    @Published var image: Image
+    @Published var count: Int
+    @Published var id: String
     
-    init(content: Data, image: Image) {
+    init(content: [String: Any], image: Image, id: String) {
         self.content = content
         self.image = image
+        self.id = id
+        self.count = 1
     }
     
-    func addCard() {
-        count += 1
+    func incrCount(incr: Int) {
+        count += incr
     }
 }
 
@@ -79,10 +91,10 @@ struct SearchView: View {
     @State private var imageHeight: CGFloat = 0
     
     @Binding var showSearch: Bool
-    @Binding var deck: Deck
+    @ObservedObject var deck: Deck
     
-    func fetchImage(url: String) {
-        let imageUrl = URL(string: url)!
+    func addCardToSearch(imageUrl: String, card: [String: Any], id: String) {
+        let imageUrl = URL(string: imageUrl)!
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
                 var uiImage = UIImage(data: data!)!
@@ -92,7 +104,7 @@ struct SearchView: View {
                 let newImage = UIGraphicsGetImageFromCurrentImageContext()
                 UIGraphicsEndImageContext()
                 
-                var card = Card(content: data!, image: Image(uiImage: newImage!))
+                var card = Card(content: card, image: Image(uiImage: newImage!), id: id)
                 self.searchResults.append(card)
             }
         }
@@ -116,6 +128,7 @@ struct SearchView: View {
                     if let cards = dictionary["cards"] as? [[String: Any]] {
                         for (card) in cards {
                             var url = self.imageUrlBase
+                            var id = ""
                             
                             if let setCode = card["setCode"] as? String {
                                 url += setCode + "/"
@@ -123,7 +136,9 @@ struct SearchView: View {
                             if let number = card["number"] as? String {
                                 url += number + ".png"
                             }
-                            self.fetchImage(url: url)
+                            if let id = card["id"] as? String {
+                                self.addCardToSearch(imageUrl: url, card: card, id: id)
+                            }
                         }
                     }
                 }

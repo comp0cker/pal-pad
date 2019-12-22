@@ -7,10 +7,11 @@
 //
 
 import SwiftUI
+import Combine
 
 struct SaveDeck: View {
     @State private var deckName: String = ""
-    @Binding var deck: Deck
+    @ObservedObject var deck: Deck
     
     func storeDeck() {
         let defaults = UserDefaults.standard
@@ -54,7 +55,10 @@ struct ContentView: View {
     @State var showSearch: Bool = false
     @State var showSaveDeck: Bool = false
     @State private var saveDeckName: String = ""
-    @State var deck: Deck = Deck()
+    @ObservedObject var deck: Deck = Deck()
+    
+    @State private var firstPosition: CGSize = .zero
+    @State private var newPosition: CGSize = .zero
     
     func searchOn() {
         showSearch = true
@@ -78,6 +82,11 @@ struct ContentView: View {
         showSaveDeck = true
     }
     
+    func incrCard(index: Int, incr: Int) {
+        self.deck.objectWillChange.send()
+        self.deck.changeCardCount(index: index, incr: incr)
+    }
+    
     var body: some View {
         VStack {
             NavigationView {
@@ -85,8 +94,7 @@ struct ContentView: View {
                     Text("Welcome to vmax!")
                     Text("Add some cards to get started")
                     Button(action: {
-                        let d = self.$deck
-                        let alertHC = UIHostingController(rootView: SaveDeck(deck: d))
+                        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck))
 
                         alertHC.preferredContentSize = CGSize(width: 300, height: 200)
                         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
@@ -100,7 +108,7 @@ struct ContentView: View {
                     Button(action: searchOn) {
                         Text("Add card")
                     }
-                    NavigationLink (destination: SearchView(showSearch: $showSearch, deck: $deck), isActive: $showSearch) {
+                    NavigationLink (destination: SearchView(showSearch: $showSearch, deck: deck), isActive: $showSearch) {
                         EmptyView()
                     }
                     ScrollView {
@@ -114,7 +122,25 @@ struct ContentView: View {
                                                 .fill(Color.red)
                                                 .frame(width: 100, height: 50)
                                             Text(String(self.deck.cardCount(index: rowNumber * 3 + columnNumber)))
-                                        }
+                                        }.gesture(DragGesture()
+                                                .onChanged { value in
+                                                    if self.firstPosition == .zero {
+                                                        print("whoop")
+                                                        self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
+                                                    }
+                                            }   // 4.
+                                                .onEnded { value in
+                                                    self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
+                                                    if (self.newPosition.height < self.firstPosition.height) {
+                                                        print("ADD")
+                                                        self.incrCard(index: rowNumber * 3 + columnNumber, incr: 1)
+                                                    }
+                                                    else if (self.newPosition.height > self.firstPosition.height) {
+                                                        print("MINUS")
+                                                        self.incrCard(index: rowNumber * 3 + columnNumber, incr: -1)
+                                                    }
+                                                    self.firstPosition = .zero
+                                                })
                                     }
                                 }
                             }
