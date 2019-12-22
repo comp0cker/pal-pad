@@ -8,25 +8,55 @@
 
 import SwiftUI
 
-struct Deck {
-    @State var cards: [Card]
+class Deck {
+    private var cards: [Card] = []
+    private var cardss: [String] = []
+    private var yuh: String = ""
     
     func addCard(card: Card) {
         let duplicateCard =  cards.contains {$0.content == card.content}
         if duplicateCard {
+            print("duplicate card!")
             let index = cards.firstIndex {$0.content == card.content}
             cards[index!].addCard()
+            // wtf????
         }
         else {
             cards.append(card)
         }
     }
+    
+    func getImage(index: Int) -> Image {
+        return cards[index].image
+    }
+    
+    func uniqueCardCount() -> Int {
+        return self.cards.count
+    }
+    
+    func cardCount(index: Int) -> Int {
+        return cards[index].count
+    }
+    
+    func jsonOutput() -> String {
+        var dataStrings: [String] = []
+        for card in self.cards {
+            print(card.content)
+            var ds = String(data: card.content, encoding: .utf8)!
+            dataStrings.append(ds)
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: dataStrings, options: []) else {
+            return ""
+        }
+        let string = String(data: data, encoding: String.Encoding.utf8)
+        return string!
+    }
 }
 
-struct Card {
+class Card {
     var content: Data
     var image: Image
-    @State var count: Int = 1
+    var count: Int = 1
     
     init(content: Data, image: Image) {
         self.content = content
@@ -49,7 +79,7 @@ struct SearchView: View {
     @State private var imageHeight: CGFloat = 0
     
     @Binding var showSearch: Bool
-    @Binding var deck: [Card]
+    @Binding var deck: Deck
     
     func fetchImage(url: String) {
         let imageUrl = URL(string: url)!
@@ -106,10 +136,10 @@ struct SearchView: View {
     }
     
     func searchOff(card: Card) {
-        var newDeck = deck
-        newDeck.append(card)
-        deck = newDeck
-        print(deck)
+        var newDeck: Deck = deck
+        newDeck.addCard(card: card)
+        print("leggo")
+        print(card)
         showSearch = false
     }
 
