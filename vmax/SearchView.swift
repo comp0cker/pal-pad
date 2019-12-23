@@ -9,6 +9,12 @@
 import SwiftUI
 import Combine
 
+let urlBase = "https://api.pokemontcg.io/v1/"
+let imageUrlBase = "https://images.pokemontcg.io/"
+
+let imageWidth: CGFloat = UIScreen.main.bounds.width / 4
+let imageHeight: CGFloat = imageWidth * 343 / 246
+
 func json(from object:Any) -> String? {
     guard let data = try? JSONSerialization.data(withJSONObject: object, options: []) else {
         return nil
@@ -52,13 +58,15 @@ class Deck: ObservableObject {
         return cards[index].count
     }
     
-    func jsonOutput() -> String {
-        var dataStrings: [String] = []
+    func deckOutput() -> String {
+        var out: [[String: String]] = []
         for card in self.cards {
-            print(json(from: card.content)!)
-            dataStrings.append(json(from: card.content)!)
+            var cardOutput = [String: String]()
+            cardOutput["content"] = json(from: card.content)!
+            cardOutput["count"] = String(card.count)
+            out.append(cardOutput)
         }
-        return json(from: dataStrings)!
+        return json(from: out)!
     }
 }
 
@@ -68,10 +76,15 @@ class Card: ObservableObject {
     @Published var count: Int
     @Published var id: String
     
-    init(content: [String: Any], image: Image, id: String) {
+    init(content: [String: Any], image: Image) {
         self.content = content
         self.image = image
-        self.id = id
+        
+        self.id = ""
+        if let id = content["id"] as? String {
+            self.id = id
+        }
+        
         self.count = 1
     }
     
@@ -80,31 +93,40 @@ class Card: ObservableObject {
     }
 }
 
+func getImageFromData(data: Data) -> Image {
+    let uiImage = UIImage(data: data)!
+    
+    UIGraphicsBeginImageContext(CGSize(width: imageWidth, height: imageHeight))
+    uiImage.draw(in: CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
+    let newImage = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+    return Image(uiImage: newImage!)
+}
+
 struct SearchView: View {
     @State var image = Image(systemName: "card")
     @State var searchQuery = ""
     @State var searchResults: [Card] = []
-    var urlBase = "https://api.pokemontcg.io/v1/"
-    var imageUrlBase = "https://images.pokemontcg.io/"
-    
-    @State private var imageWidth: CGFloat = 0
-    @State private var imageHeight: CGFloat = 0
     
     @Binding var showSearch: Bool
     @ObservedObject var deck: Deck
     
-    func addCardToSearch(imageUrl: String, card: [String: Any], id: String) {
-        let imageUrl = URL(string: imageUrl)!
+    func addCardToSearch(card: [String: Any]) {
+        var url = imageUrlBase
+        
+        if let setCode = card["setCode"] as? String {
+            url += setCode + "/"
+        }
+        if let number = card["number"] as? String {
+            url += number + ".png"
+        }
+        
+        let imageUrl = URL(string: url)!
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
-                var uiImage = UIImage(data: data!)!
+                let image = getImageFromData(data: data!)
                 
-                UIGraphicsBeginImageContext(CGSize(width: self.imageWidth, height: self.imageHeight))
-                uiImage.draw(in: CGRect(x: 0, y: 0, width: self.imageWidth, height: self.imageHeight))
-                let newImage = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
-                
-                var card = Card(content: card, image: Image(uiImage: newImage!), id: id)
+                let card = Card(content: card, image: image)
                 self.searchResults.append(card)
             }
         }
@@ -112,14 +134,7 @@ struct SearchView: View {
     }
     
     func searchCards() {
-        let screenSize = UIScreen.main.bounds
-        let screenWidth = screenSize.width
-        let heightToWidth: CGFloat = 343 / 246
-        
-        self.imageWidth = screenWidth / 4
-        self.imageHeight = self.imageWidth * heightToWidth
-        
-        var url = URL(string: urlBase + "cards?name=" + searchQuery)!
+        let url = URL(string: urlBase + "cards?name=" + searchQuery)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error == nil {
                 let json = try? JSONSerialization.jsonObject(with: data!, options: [])
@@ -127,18 +142,7 @@ struct SearchView: View {
                 if let dictionary = json as? [String: Any] {
                     if let cards = dictionary["cards"] as? [[String: Any]] {
                         for (card) in cards {
-                            var url = self.imageUrlBase
-                            var id = ""
-                            
-                            if let setCode = card["setCode"] as? String {
-                                url += setCode + "/"
-                            }
-                            if let number = card["number"] as? String {
-                                url += number + ".png"
-                            }
-                            if let id = card["id"] as? String {
-                                self.addCardToSearch(imageUrl: url, card: card, id: id)
-                            }
+                            self.addCardToSearch(card: card)
                         }
                     }
                 }
