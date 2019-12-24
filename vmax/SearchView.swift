@@ -23,7 +23,13 @@ func json(from object:Any) -> String? {
 }
 
 class Deck: ObservableObject {
-    @Published var cards: [Card] = []
+    @Published var cards: [Card]
+    @Published var name: String
+    
+    init(name: String) {
+        self.name = name
+        self.cards = []
+    }
     
     func addCard(card: Card) {
         let duplicateCard =  cards.contains {$0.id == card.id}
@@ -33,6 +39,12 @@ class Deck: ObservableObject {
             cards[index!].count += 1
         }
         else {
+            cards.append(card)
+        }
+    }
+    
+    func addCard(card: Card, count: Int) {
+        for _ in 0 ..< count {
             cards.append(card)
         }
     }
@@ -76,9 +88,9 @@ class Card: ObservableObject {
     @Published var count: Int
     @Published var id: String
     
-    init(content: [String: Any], image: Image) {
+    init(content: [String: Any]) {
         self.content = content
-        self.image = image
+        self.image = Image(systemName: "cloud.heavyrain.fill")
         
         self.id = ""
         if let id = content["id"] as? String {
@@ -88,46 +100,56 @@ class Card: ObservableObject {
         self.count = 1
     }
     
+    func getSupertype() -> String {
+        return content["supertype"] as! String
+    }
+    
+    func ifBasicEnergy() -> Bool {
+        return content["supertype"] as! String == "Energy" && content["subtype"] as! String == "Basic"
+    }
+    
+    func getImageUrl(cardDict: [String: Any]) -> URL {
+        var url = imageUrlBase
+        
+        if let setCode = cardDict["setCode"] as? String {
+            url += setCode + "/"
+        }
+        if let number = cardDict["number"] as? String {
+            url += number + ".png"
+        }
+        
+        return URL(string: url)!
+    }
+    
+    func getImageFromData(data: Data) -> Image {
+        let uiImage = UIImage(data: data)!
+        
+        UIGraphicsBeginImageContext(CGSize(width: imageWidth, height: imageHeight))
+        uiImage.draw(in: CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return Image(uiImage: newImage!)
+    }
+    
     func incrCount(incr: Int) {
         count += incr
     }
-}
-
-func getImageFromData(data: Data) -> Image {
-    let uiImage = UIImage(data: data)!
-    
-    UIGraphicsBeginImageContext(CGSize(width: imageWidth, height: imageHeight))
-    uiImage.draw(in: CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
-    let newImage = UIGraphicsGetImageFromCurrentImageContext()
-    UIGraphicsEndImageContext()
-    return Image(uiImage: newImage!)
 }
 
 struct SearchView: View {
     @State var image = Image(systemName: "card")
     @State var searchQuery = ""
     @State var searchResults: [Card] = []
-    
-    @Binding var showSearch: Bool
     @ObservedObject var deck: Deck
     
     func addCardToSearch(card: [String: Any]) {
-        var url = imageUrlBase
-        
-        if let setCode = card["setCode"] as? String {
-            url += setCode + "/"
-        }
-        if let number = card["number"] as? String {
-            url += number + ".png"
-        }
-        
-        let imageUrl = URL(string: url)!
+        // DUPLICATE CODE
+        var c = Card(content: card)
+        let imageUrl = c.getImageUrl(cardDict: card)
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
-                let image = getImageFromData(data: data!)
-                
-                let card = Card(content: card, image: image)
-                self.searchResults.append(card)
+                c.image = c.getImageFromData(data: data!)
+                self.searchResults.append(c)
             }
         }
         task.resume()
@@ -157,9 +179,7 @@ struct SearchView: View {
     func searchOff(card: Card) {
         var newDeck: Deck = deck
         newDeck.addCard(card: card)
-        print("leggo")
-        print(card)
-        showSearch = false
+        UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
     }
 
     var body: some View {
@@ -170,7 +190,7 @@ struct SearchView: View {
                     Button(action: searchCards) {
                         Text("Search")
                     }
-                }
+                }.padding()
 
                 VStack {
                     ForEach (0 ..< searchResults.count / 3, id: \.self) { rowNumber in

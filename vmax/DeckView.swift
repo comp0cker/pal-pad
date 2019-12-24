@@ -9,71 +9,30 @@
 import SwiftUI
 import Combine
 
-struct SaveDeck: View {
-    @State private var deckName: String = ""
-    @ObservedObject var deck: Deck
-    
-    func storeDeck() {
-        let defaults = UserDefaults.standard
-        var newDecks = [String: String]()
-        if (!defaults.bool(forKey: "decks")) {
-            newDecks = defaults.object(forKey: "decks") as? [String: String] ?? [String: String]()
-        }
-
-        newDecks[deckName] = deck.deckOutput()
-        defaults.set(newDecks, forKey: "decks")
-        
-        UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
-    }
-
-    var body: some View {
-        VStack {
-            Text("Enter Input")
-            TextField("Type text here", text: $deckName)
-            Divider()
-                HStack {
-                    Button(action: storeDeck) {
-                        Text("Done")
-                    }
-                    Button(action: {
-                        UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
-                    }) {
-                        Text("Cancel")
-                    }
-                    Spacer()
-                }
-            }.background(Color(white: 1))
-    }
-}
-
 struct DeckView: View {
-    @State var showSearch: Bool = false
     @State var showSaveDeck: Bool = false
     @State private var saveDeckName: String = ""
-    @ObservedObject var deck: Deck = Deck()
+    @ObservedObject var deck: Deck
+    @ObservedObject var savedDecks: SavedDecks
     
     @State private var firstPosition: CGSize = .zero
     @State private var newPosition: CGSize = .zero
     
-    func searchOn() {
-        showSearch = true
+    @State private var tooManyCardsAlert = false
+    
+    func rowCount(cards: [Card]) -> Int {
+        return (cards.count - 1) / 3 + 1
     }
     
-    func rowCount() -> Int {
-        print("row count" + String(self.deck.uniqueCardCount() / 3 + 1))
-        return self.deck.uniqueCardCount() / 3 + 1
-    }
-    
-    func colCount(rowNumber: Int) -> Int {
-        if 3 + rowNumber > self.deck.uniqueCardCount() {
-            print("col count" + String(self.deck.uniqueCardCount()))
-            return self.deck.uniqueCardCount()
+    func colCount(rowNumber: Int, cards: [Card]) -> Int {
+        if cards.count % 3 == 0 && cards.count != 0 {
+            return 3
         }
-        print("3")
-        return 3
+        return cards.count % 3
     }
     
     func saveDeck() {
+        self.savedDecks.objectWillChange.send()
         showSaveDeck = true
     }
     
@@ -82,14 +41,65 @@ struct DeckView: View {
         self.deck.changeCardCount(index: index, incr: incr)
     }
     
+    func cardView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
+        let selectedCard = cards[rowNumber * 3 + columnNumber]
+//        print(selectedCard.content["name"] as! String)
+        let index = self.deck.cards.firstIndex(where: {$0.id == selectedCard.id})!
+        
+        return ZStack {
+            cards[rowNumber * 3 + columnNumber].image
+            Circle()
+                .frame(width: 40, height: 40)
+                .padding(.top, 100)
+                .overlay(
+                  Circle()
+                 .stroke(Color.black,lineWidth: 5)
+                    .padding(.top, 100)
+                ).foregroundColor(Color.white)
+            
+            Text(String(self.deck.cardCount(index: index)))
+                .fontWeight(.bold)
+                .padding(.top, 100)
+        }.gesture(DragGesture()
+                .onChanged { value in
+                    if self.firstPosition == .zero {
+                        self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
+                    }
+            }   // 4.
+                .onEnded { value in
+                    self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
+                    
+                    if (self.newPosition.height < self.firstPosition.height) {
+                        if (self.deck.cards[index].count == 4 && !self.deck.cards[index].ifBasicEnergy()) {
+                            self.tooManyCardsAlert = true
+                        }
+                        else {
+                            self.incrCard(index: index, incr: 1)
+                        }
+                    }
+                    else if (self.newPosition.height > self.firstPosition.height) {
+                        self.incrCard(index: index, incr: -1)
+                    }
+                    self.firstPosition = .zero
+            })
+        .alert(isPresented: $tooManyCardsAlert) {
+            Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
+        }
+    }
+    
     var body: some View {
-        VStack {
-            NavigationView {
-                VStack {
-                    Text("Welcome to vmax!")
-                    Text("Add some cards to get started")
+        let supertypes = ["Pokémon", "Trainer", "Energy"]
+        var supertypeCards: [[Card]] = []
+        
+        for supertype in supertypes {
+            let filteredCards = self.deck.cards.filter { $0.getSupertype() == supertype }
+            supertypeCards.append(filteredCards)
+        }
+        
+        return VStack(alignment: .leading) {
+                HStack {
                     Button(action: {
-                        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck))
+                        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks))
 
                         alertHC.preferredContentSize = CGSize(width: 300, height: 200)
                         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
@@ -100,55 +110,31 @@ struct DeckView: View {
                         Text("Save Deck")
                     }
                     
-                    Button(action: searchOn) {
+                    Button(action: {
+                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck))
+
+                        alertHC.preferredContentSize = CGSize(width: 300, height: 200)
+                        alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+
+                        UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
+                    }) {
                         Text("Add card")
                     }
-                    NavigationLink (destination: SearchView(showSearch: $showSearch, deck: deck), isActive: $showSearch) {
-                        EmptyView()
-                    }
-                    ScrollView {
-                        VStack {
-                            ForEach (0 ..< self.rowCount(), id: \.self) { rowNumber in
+                }
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        ForEach (0 ..< supertypes.count) { supertype in
+                            Text(supertypes[supertype]).font(.title).fontWeight(.bold)
+                            ForEach (0 ..< self.rowCount(cards: supertypeCards[supertype]), id: \.self) { rowNumber in
                                 HStack {
-                                    ForEach (0 ..< self.colCount(rowNumber: rowNumber), id: \.self) { columnNumber in
-                                        ZStack {
-                                            self.deck.getImage(index: rowNumber * 3 + columnNumber)
-                                            Circle()
-                                                .fill(Color.red)
-                                                .frame(width: 100, height: 50)
-                                            Text(String(self.deck.cardCount(index: rowNumber * 3 + columnNumber)))
-                                        }.gesture(DragGesture()
-                                                .onChanged { value in
-                                                    if self.firstPosition == .zero {
-                                                        print("whoop")
-                                                        self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
-                                                    }
-                                            }   // 4.
-                                                .onEnded { value in
-                                                    self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
-                                                    if (self.newPosition.height < self.firstPosition.height) {
-                                                        print("ADD")
-                                                        self.incrCard(index: rowNumber * 3 + columnNumber, incr: 1)
-                                                    }
-                                                    else if (self.newPosition.height > self.firstPosition.height) {
-                                                        print("MINUS")
-                                                        self.incrCard(index: rowNumber * 3 + columnNumber, incr: -1)
-                                                    }
-                                                    self.firstPosition = .zero
-                                                })
+                                    ForEach (0 ..< self.colCount(rowNumber: rowNumber, cards: supertypeCards[supertype]), id: \.self) { columnNumber in
+                                        self.cardView(rowNumber: rowNumber, columnNumber: columnNumber, cards: supertypeCards[supertype])
                                     }
                                 }
                             }
                         }
                     }
-                }.navigationBarTitle("Deck Editor")
-            }
+                }
+            }.navigationBarTitle(self.deck.name)
         }
     }
-}
-
-struct DeckView_Previews: PreviewProvider {
-    static var previews: some View {
-        DeckView()
-    }
-}
