@@ -20,6 +20,8 @@ struct DeckView: View {
     
     @State private var tooManyCardsAlert = false
     
+    @State private var changedSomething = false
+    
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
     }
@@ -32,6 +34,8 @@ struct DeckView: View {
     func incrCard(index: Int, incr: Int) {
         self.deck.objectWillChange.send()
         self.deck.changeCardCount(index: index, incr: incr)
+        
+        self.changedSomething = true
     }
     
     func cardView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
@@ -55,6 +59,7 @@ struct DeckView: View {
                 ).foregroundColor(Color.white)
             
             Text(String(self.deck.cardCount(index: index)))
+                .foregroundColor(Color.black)
                 .fontWeight(.bold)
                 .padding(.top, 100)
         }.gesture(DragGesture()
@@ -69,13 +74,25 @@ struct DeckView: View {
                     if (self.newPosition.height < self.firstPosition.height) {
                         if (self.deck.cards[index].count == 4 && !self.deck.cards[index].ifBasicEnergy()) {
                             self.tooManyCardsAlert = true
+                            
+                            // bzzt
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
                         }
                         else {
                             self.incrCard(index: index, incr: 1)
+                            
+                            // bzzt
+                            let generator = UISelectionFeedbackGenerator()
+                            generator.selectionChanged()
                         }
                     }
                     else if (self.newPosition.height > self.firstPosition.height) {
                         self.incrCard(index: index, incr: -1)
+                        
+                        // bzzt
+                        let generator = UISelectionFeedbackGenerator()
+                        generator.selectionChanged()
                     }
                     self.firstPosition = .zero
             })
@@ -83,6 +100,41 @@ struct DeckView: View {
             Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
         }
         )
+    }
+    
+    func save() -> some View {
+        return self.changedSomething ? AnyView(Button(action: {
+            // if this is an already saved deck, when we save just override what's
+            // in there for the deck of this name
+            if self.deck.name != "New Deck" {
+                let defaults = UserDefaults.standard
+                var newDecks = defaults.object(forKey: "decks") as? [String: String] ?? [String: String]()
+
+                newDecks[self.deck.name] = self.deck.deckOutput()
+                defaults.set(newDecks, forKey: "decks")
+                self.savedDecks.update()
+                
+                // bzzt
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                
+                self.changedSomething = false
+                
+                return
+            }
+            
+            let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks))
+
+            alertHC.preferredContentSize = CGSize(width: 300, height: 200)
+            alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+
+            UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
+
+        })
+        {
+            Text("Save Deck")
+            })
+            : AnyView(Text("Saved ✅").foregroundColor(Color.green))
     }
     
     var body: some View {
@@ -104,20 +156,10 @@ struct DeckView: View {
         
         return VStack(alignment: .leading) {
                 HStack {
-                    Button(action: {
-                        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks))
-
-                        alertHC.preferredContentSize = CGSize(width: 300, height: 200)
-                        alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-
-                        UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
-
-                    }) {
-                        Text("Save Deck")
-                    }
+                    self.save()
                     
                     Button(action: {
-                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck))
+                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething))
 
                         alertHC.preferredContentSize = CGSize(width: 300, height: 200)
                         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet

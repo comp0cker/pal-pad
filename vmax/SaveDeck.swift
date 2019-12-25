@@ -26,6 +26,10 @@ struct SaveDeck: View {
         // updating the original view with saved deck
         self.savedDecks.update()
         
+        // bzzt
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
         UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
     }
 

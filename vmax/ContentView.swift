@@ -47,6 +47,7 @@ struct ContentView: View {
                     let task = URLSession.shared.dataTask(with: imageUrl) { (imgData, response, error) in
                         if error == nil {
                             c.image = c.getImageFromData(data: imgData!)
+                            c.count = count
                             self.deck.addCard(card: c)
                         }
                     }

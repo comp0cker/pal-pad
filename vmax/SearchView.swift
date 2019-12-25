@@ -22,6 +22,12 @@ func json(from object:Any) -> String? {
     return String(data: data, encoding: String.Encoding.utf8)
 }
 
+extension UIApplication {
+    func endEditing() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
 struct SearchView: View {
     @State var image = Image(systemName: "card")
     @State var searchQuery = ""
@@ -29,6 +35,7 @@ struct SearchView: View {
     @ObservedObject var deck: Deck
     @State var sets: [[String: Any]] = []
     @State var searchResultsLoaded = false
+    @Binding var changedSomething: Bool
     
     func addCardToSearch(card: [String: Any]) {
         // DUPLICATE CODE
@@ -70,6 +77,7 @@ struct SearchView: View {
     
     func searchCards() {
         self.searchResults.objectWillChange.send()
+        UIApplication.shared.endEditing()
         
         let defaults = UserDefaults.standard
         
@@ -104,8 +112,13 @@ struct SearchView: View {
     }
     
     func searchOff(card: Card) {
+        // bzzt
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
         var newDeck: Deck = deck
         newDeck.addCard(card: card)
+        changedSomething = true
         UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
     }
     
