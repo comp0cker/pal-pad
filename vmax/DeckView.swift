@@ -24,13 +24,6 @@ struct DeckView: View {
         return (cards.count - 1) / 3 + 1
     }
     
-    func colCount(rowNumber: Int, cards: [Card]) -> Int {
-        if cards.count % 3 == 0 && cards.count != 0 {
-            return 3
-        }
-        return cards.count % 3
-    }
-    
     func saveDeck() {
         self.savedDecks.objectWillChange.send()
         showSaveDeck = true
@@ -42,11 +35,15 @@ struct DeckView: View {
     }
     
     func cardView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
+        if rowNumber * 3 + columnNumber >= cards.count {
+            return AnyView(EmptyView())
+        }
         let selectedCard = cards[rowNumber * 3 + columnNumber]
 //        print(selectedCard.content["name"] as! String)
         let index = self.deck.cards.firstIndex(where: {$0.id == selectedCard.id})!
         
-        return ZStack {
+        return AnyView(
+            ZStack {
             cards[rowNumber * 3 + columnNumber].image
             Circle()
                 .frame(width: 40, height: 40)
@@ -85,15 +82,24 @@ struct DeckView: View {
         .alert(isPresented: $tooManyCardsAlert) {
             Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
         }
+        )
     }
     
     var body: some View {
         let supertypes = ["Pokémon", "Trainer", "Energy"]
         var supertypeCards: [[Card]] = []
+        var supertypeCounts: [Int] = [0, 0, 0]
         
+        var ctr = 0
         for supertype in supertypes {
             let filteredCards = self.deck.cards.filter { $0.getSupertype() == supertype }
             supertypeCards.append(filteredCards)
+            
+            for card in filteredCards {
+                supertypeCounts[ctr] += card.count
+            }
+            
+            ctr += 1
         }
         
         return VStack(alignment: .leading) {
@@ -123,11 +129,16 @@ struct DeckView: View {
                 }
                 ScrollView {
                     VStack(alignment: .leading) {
+                        HStack {
+                            Spacer()
+                        }
                         ForEach (0 ..< supertypes.count) { supertype in
-                            Text(supertypes[supertype]).font(.title).fontWeight(.bold)
+                            Text(supertypes[supertype] + " (" + String(supertypeCounts[supertype]) + ")")
+                                .font(.title)
+                                .fontWeight(.bold)
                             ForEach (0 ..< self.rowCount(cards: supertypeCards[supertype]), id: \.self) { rowNumber in
                                 HStack {
-                                    ForEach (0 ..< self.colCount(rowNumber: rowNumber, cards: supertypeCards[supertype]), id: \.self) { columnNumber in
+                                    ForEach (0 ..< 3, id: \.self) { columnNumber in
                                         self.cardView(rowNumber: rowNumber, columnNumber: columnNumber, cards: supertypeCards[supertype])
                                     }
                                 }
@@ -136,5 +147,6 @@ struct DeckView: View {
                     }
                 }
             }.navigationBarTitle(self.deck.name)
+        .padding()
         }
     }

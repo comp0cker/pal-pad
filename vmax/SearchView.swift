@@ -22,141 +22,32 @@ func json(from object:Any) -> String? {
     return String(data: data, encoding: String.Encoding.utf8)
 }
 
-class Deck: ObservableObject {
-    @Published var cards: [Card]
-    @Published var name: String
-    
-    init(name: String) {
-        self.name = name
-        self.cards = []
-    }
-    
-    func addCard(card: Card) {
-        let duplicateCard =  cards.contains {$0.id == card.id}
-        if duplicateCard {
-            print("duplicate card!")
-            let index = cards.firstIndex {$0.id == card.id}
-            cards[index!].count += 1
-        }
-        else {
-            cards.append(card)
-        }
-    }
-    
-    func addCard(card: Card, count: Int) {
-        for _ in 0 ..< count {
-            cards.append(card)
-        }
-    }
-    
-    func changeCardCount(index: Int, incr: Int) {
-        cards[index].incrCount(incr: incr)
-        
-        // if card count less than zero outta here
-        if cards[index].count <= 0 {
-            cards.remove(at: index)
-        }
-    }
-    
-    func getImage(index: Int) -> Image {
-        return cards[index].image
-    }
-    
-    func uniqueCardCount() -> Int {
-        return self.cards.count
-    }
-    
-    func cardCount(index: Int) -> Int {
-        return cards[index].count
-    }
-    
-    func deckOutput() -> String {
-        var out: [[String: String]] = []
-        for card in self.cards {
-            var cardOutput = [String: String]()
-            cardOutput["content"] = json(from: card.content)!
-            cardOutput["count"] = String(card.count)
-            out.append(cardOutput)
-        }
-        return json(from: out)!
-    }
-}
-
-class Card: ObservableObject {
-    @Published var content: [String: Any]
-    @Published var image: Image
-    @Published var count: Int
-    @Published var id: String
-    
-    init(content: [String: Any]) {
-        self.content = content
-        self.image = Image(systemName: "cloud.heavyrain.fill")
-        
-        self.id = ""
-        if let id = content["id"] as? String {
-            self.id = id
-        }
-        
-        self.count = 1
-    }
-    
-    func getSupertype() -> String {
-        return content["supertype"] as! String
-    }
-    
-    func ifBasicEnergy() -> Bool {
-        return content["supertype"] as! String == "Energy" && content["subtype"] as! String == "Basic"
-    }
-    
-    func getImageUrl(cardDict: [String: Any]) -> URL {
-        var url = imageUrlBase
-        
-        if let setCode = cardDict["setCode"] as? String {
-            url += setCode + "/"
-        }
-        if let number = cardDict["number"] as? String {
-            url += number + ".png"
-        }
-        
-        return URL(string: url)!
-    }
-    
-    func getImageFromData(data: Data) -> Image {
-        let uiImage = UIImage(data: data)!
-        
-        UIGraphicsBeginImageContext(CGSize(width: imageWidth, height: imageHeight))
-        uiImage.draw(in: CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return Image(uiImage: newImage!)
-    }
-    
-    func incrCount(incr: Int) {
-        count += incr
-    }
-}
-
 struct SearchView: View {
     @State var image = Image(systemName: "card")
     @State var searchQuery = ""
-    @State var searchResults: [Card] = []
+    @ObservedObject var searchResults: Deck = Deck(name: "New Deck")
     @ObservedObject var deck: Deck
+    @State var sets: [[String: Any]] = []
+    @State var searchResultsLoaded = false
     
     func addCardToSearch(card: [String: Any]) {
         // DUPLICATE CODE
-        var c = Card(content: card)
+        let c = Card(content: card)
         let imageUrl = c.getImageUrl(cardDict: card)
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
                 c.image = c.getImageFromData(data: data!)
-                self.searchResults.append(c)
+                self.searchResults.addCard(card: c)
             }
         }
         task.resume()
     }
     
-    func searchCards() {
-        let url = URL(string: urlBase + "cards?name=" + searchQuery)!
+    // this is where we actually search cards, called by searchCards()
+    func actuallySearchCards() {
+        self.searchResults.clear()
+        let searchQueryUrl = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        let url = URL(string: urlBase + "cards?name=" + searchQueryUrl)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error == nil {
                 let json = try? JSONSerialization.jsonObject(with: data!, options: [])
@@ -168,6 +59,7 @@ struct SearchView: View {
                         }
                     }
                 }
+                self.searchResultsLoaded = true
             }
             else {
                 print(error)
@@ -176,34 +68,123 @@ struct SearchView: View {
         task.resume()
     }
     
+    func searchCards() {
+        self.searchResults.objectWillChange.send()
+        
+        let defaults = UserDefaults.standard
+        
+        // if we've never searched for cards before load the legalities into
+        // local memory, then actually search cards (we only do this ONCE EVER)
+        if (!defaults.bool(forKey: "sets")) {
+            let setLegalityUrl = URL(string: urlBase + "sets")!
+            let initTask = URLSession.shared.dataTask(with: setLegalityUrl) { (data, response, error) in
+                if error == nil {
+                   let json = try? JSONSerialization.jsonObject(with: data!, options: [])
+                    if let dict = json as? [String: Any] {
+                        if let sets = dict["sets"] as? [[String: Any]] {
+                            defaults.set(dict["sets"], forKey: "sets")
+                            
+                            self.sets = sets
+                            print("success!")
+                            self.actuallySearchCards()
+                            print("DONE!")
+                        }
+                    }
+                    else {
+                        print("oh no")
+                    }
+                }
+            }
+            initTask.resume()
+        }
+        else {
+            sets = defaults.object(forKey: "sets") as? [[String: Any]] ?? [[String: Any]]()
+            print("NICE")
+        }
+    }
+    
     func searchOff(card: Card) {
         var newDeck: Deck = deck
         newDeck.addCard(card: card)
         UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
     }
+    
+    func searchResultView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
+        return Button(action: {self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber])}) {
+            rowNumber * 3 + columnNumber >= cards.count ? Image(systemName: "card") : cards[rowNumber * 3 + columnNumber].image.renderingMode(.original)
+        }
+    }
+    
+    func ifCardLegal(card: Card, legality: String) -> Bool {
+        let selectedSet = self.sets.filter { set in
+            let setName = set["name"] as? String
+            let cardSetName = card.content["set"] as? String
+            return setName! == cardSetName!
+        }
+        let standardLegal = selectedSet[0]["standardLegal"] as? Bool
+        let expandedLegal = selectedSet[0]["expandedLegal"] as? Bool
+        
+        if legality == "Standard" {
+            return standardLegal!
+        }
+        if legality == "Expanded" {
+            return expandedLegal! && !standardLegal!
+        }
+        if legality == "Unlimited" {
+            return !expandedLegal! && !standardLegal!
+        }
+        
+        print("something has gone horribly wrong")
+        return false
+    }
+    
+    func rowCount(cards: [Card]) -> Int {
+        return (cards.count - 1) / 3 + 1
+    }
 
     var body: some View {
-        ScrollView {
-            VStack {
+        let legalities = ["Standard", "Expanded", "Unlimited"]
+        var legalCards: [[Card]] = []
+        
+        for legality in legalities {
+            let filteredCards = self.searchResults.cards.filter { self.ifCardLegal(card: $0, legality: legality) }
+            legalCards.append(filteredCards)
+            
+            print(legality + String(filteredCards.count))
+        }
+        return VStack {
                 HStack {
                     TextField("Card name", text: $searchQuery)
                     Button(action: searchCards) {
                         Text("Search")
                     }
                 }.padding()
-
-                VStack {
-                    ForEach (0 ..< searchResults.count / 3, id: \.self) { rowNumber in
+                
+                !searchResultsLoaded ? nil : ScrollView {
+                    VStack(alignment: .leading) {
                         HStack {
-                            ForEach (0 ..< 3, id: \.self) { columnNumber in
-                                Button(action: {self.searchOff(card: self.searchResults[rowNumber * 3 + columnNumber])}) {
-                                    self.searchResults[rowNumber * 3 + columnNumber].image.renderingMode(.original)
+                            Spacer()
+                        }
+                        ForEach (0 ..< legalities.count, id: \.self) { legality in
+                            VStack(alignment: .leading) {
+                                HStack {
+                                    Spacer()
+                                }
+                                Text(legalities[legality])
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                ForEach (0 ..< self.rowCount(cards: legalCards[legality]), id: \.self) { rowNumber in
+                                    HStack {
+                                        ForEach (0 ..< 3, id: \.self) { columnNumber in
+                                            self.searchResultView(rowNumber: rowNumber, columnNumber: columnNumber, cards: legalCards[legality])
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
+                    }.padding()
                 }
             }
         }
     }
-}
+

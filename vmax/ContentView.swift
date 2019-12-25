@@ -38,15 +38,12 @@ struct ContentView: View {
             
             let data = Data(content.utf8)
             do {
-                print(content)
                 // make sure this JSON is in the format we expect
                 if let cardDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    print(cardDict)
                     
                     var c = Card(content: cardDict)
                     // DUPLICATE CODE
                     let imageUrl = c.getImageUrl(cardDict: cardDict)
-                    print(imageUrl)
                     let task = URLSession.shared.dataTask(with: imageUrl) { (imgData, response, error) in
                         if error == nil {
                             c.image = c.getImageFromData(data: imgData!)
