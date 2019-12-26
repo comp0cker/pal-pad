@@ -11,9 +11,11 @@ import Combine
 
 struct DeckView: View {
     @State var showSaveDeck: Bool = false
+    @State var showDeleteDeck: Bool = false
     @State private var saveDeckName: String = ""
     @ObservedObject var deck: Deck
     @ObservedObject var savedDecks: SavedDecks
+    @Binding var deckViewOn: Bool
     
     @State private var firstPosition: CGSize = .zero
     @State private var newPosition: CGSize = .zero
@@ -71,7 +73,7 @@ struct DeckView: View {
                 .onEnded { value in
                     self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
                     
-                    if (self.newPosition.height < self.firstPosition.height) {
+                    if (self.newPosition.width > self.firstPosition.width) {
                         if (self.deck.cards[index].count == 4 && !self.deck.cards[index].ifBasicEnergy()) {
                             self.tooManyCardsAlert = true
                             
@@ -87,7 +89,7 @@ struct DeckView: View {
                             generator.selectionChanged()
                         }
                     }
-                    else if (self.newPosition.height > self.firstPosition.height) {
+                    else if (self.newPosition.width < self.firstPosition.width) {
                         self.incrCard(index: index, incr: -1)
                         
                         // bzzt
@@ -129,12 +131,39 @@ struct DeckView: View {
             alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
 
             UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
-
         })
         {
             Text("Save Deck")
             })
             : AnyView(Text("Saved ✅").foregroundColor(Color.green))
+    }
+    
+    func delete() -> some View {
+        return Button(action: {
+            self.showDeleteDeck = true
+        }) {
+            Text("Delete deck")
+                .foregroundColor(Color.red)
+        }.actionSheet(isPresented: self.$showDeleteDeck) {
+            ActionSheet(title: Text("Are you sure you want to delete " + self.deck.name + "?"), message: Text("Deleting will remove all data."),
+                        buttons: [.default(Text("Cancel")),
+                                  .destructive(Text("Delete"), action: self.deleteDeck)])
+        }
+    }
+    
+    func deleteDeck() {
+        let defaults = UserDefaults.standard
+        var newDecks = defaults.object(forKey: "decks") as? [String: String] ?? [String: String]()
+
+        newDecks.removeValue(forKey: self.deck.name)
+        defaults.set(newDecks, forKey: "decks")
+        self.savedDecks.update()
+        
+        // bzzt
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
+        self.deckViewOn = false
     }
     
     var body: some View {
@@ -157,6 +186,8 @@ struct DeckView: View {
         return VStack(alignment: .leading) {
                 HStack {
                     self.save()
+                    self.delete()
+                    
                     
                     Button(action: {
                         let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething))

@@ -95,13 +95,13 @@ struct ContentView: View {
                     }) {
                         Text("New Deck")
                     }
-                    Button(action: {
-                        let defaults = UserDefaults.standard
-                        defaults.set("", forKey: "decks")
-                    }) {
-                        Text("w i p e")
-                    }
-                    NavigationLink (destination: DeckView(deck: deck, savedDecks: savedDecks), isActive: $deckViewOn) {
+//                    Button(action: {
+//                        let defaults = UserDefaults.standard
+//                        defaults.set("", forKey: "decks")
+//                    }) {
+//                        Text("w i p e")
+//                    }
+                    NavigationLink (destination: DeckView(deck: deck, savedDecks: savedDecks, deckViewOn: $deckViewOn), isActive: $deckViewOn) {
                         EmptyView()
                     }
                 }.navigationBarTitle("vmax")
