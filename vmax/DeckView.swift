@@ -14,6 +14,7 @@ struct DeckView: View {
     @State var showDeleteDeck: Bool = false
     @State private var saveDeckName: String = ""
     @ObservedObject var deck: Deck
+    @State var title: String
     @ObservedObject var savedDecks: SavedDecks
     @Binding var deckViewOn: Bool
     
@@ -125,7 +126,8 @@ struct DeckView: View {
                 return
             }
             
-            let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks))
+            self.title = ""
+            let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks, deckName: self.$title))
 
             alertHC.preferredContentSize = CGSize(width: 300, height: 200)
             alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
@@ -219,7 +221,7 @@ struct DeckView: View {
                         }
                     }
                 }
-            }.navigationBarTitle(self.deck.name)
+        }.navigationBarTitle(self.title)
         .padding()
         }
     }

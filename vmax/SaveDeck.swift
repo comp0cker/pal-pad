@@ -9,9 +9,9 @@
 import SwiftUI
 
 struct SaveDeck: View {
-    @State private var deckName: String = ""
     @ObservedObject var deck: Deck
     @ObservedObject var savedDecks: SavedDecks
+    @Binding var deckName: String
     
     func storeDeck() {
         let defaults = UserDefaults.standard

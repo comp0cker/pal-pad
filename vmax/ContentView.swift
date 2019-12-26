@@ -66,34 +66,37 @@ struct ContentView: View {
         return VStack {
             NavigationView {
                 VStack(alignment: .leading) {
-                    ForEach (0 ..< names.count, id: \.self) { pos in
-                        Button(action: {
-                            self.loadedDeck = decks[pos]
-                            let name = names[pos]
-                            let data = Data(self.loadedDeck.utf8)
+                    List {
+                        ForEach (0 ..< names.count, id: \.self) { pos in
+                            Button(action: {
+                                self.loadedDeck = decks[pos]
+                                let name = names[pos]
+                                let data = Data(self.loadedDeck.utf8)
 
-                            do {
-                                // make sure this JSON is in the format we expect
-                                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: String]] {
-                                    self.loadDeck(json: json, name: name)
-                                    // try to read out a string array
+                                do {
+                                    // make sure this JSON is in the format we expect
+                                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: String]] {
+                                        self.loadDeck(json: json, name: name)
+                                        // try to read out a string array
 
+                                    }
+                                } catch let error as NSError {
+                                    print("Failed to load: \(error.localizedDescription)")
                                 }
-                            } catch let error as NSError {
-                                print("Failed to load: \(error.localizedDescription)")
+                                
+                                self.deckOn()
+                                
+                            }) {
+                                Text(names[pos])
                             }
-                            
-                            self.deckOn()
-                            
-                        }) {
-                            Text(names[pos])
                         }
-                    }
-                    Button(action: {
-                        self.deck = Deck(name: "New Deck")
-                        self.deckOn()
-                    }) {
-                        Text("New Deck")
+
+                        Button(action: {
+                            self.deck = Deck(name: "New Deck")
+                            self.deckOn()
+                        }) {
+                            Text("➕ New Deck")
+                        }
                     }
 //                    Button(action: {
 //                        let defaults = UserDefaults.standard
@@ -101,7 +104,7 @@ struct ContentView: View {
 //                    }) {
 //                        Text("w i p e")
 //                    }
-                    NavigationLink (destination: DeckView(deck: deck, savedDecks: savedDecks, deckViewOn: $deckViewOn), isActive: $deckViewOn) {
+                    NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn), isActive: $deckViewOn) {
                         EmptyView()
                     }
                 }.navigationBarTitle("vmax")
