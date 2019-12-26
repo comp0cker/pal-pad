@@ -23,6 +23,8 @@
 		B3B4D3A823B3E99F005840B9 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3A723B3E99F005840B9 /* Card.swift */; };
 		B3B4D3AA23B44D39005840B9 /* ImportLimitlessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3A923B44D39005840B9 /* ImportLimitlessView.swift */; };
 		B3B4D3B123B456E9005840B9 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = B3B4D3B023B456E9005840B9 /* SwiftSoup */; };
+		B3B4D3B723B511D9005840B9 /* Sets.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3B623B511D9005840B9 /* Sets.swift */; };
+		B3B4D3B923B51FFD005840B9 /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3B823B51FFD005840B9 /* Images.swift */; };
 		D568C5AC8085686863E6783A /* Pods_Pal_Pad.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F61F5FA4C6DEE107D91B9F2D /* Pods_Pal_Pad.framework */; };
 		EBA5C0525718CA4C538C0EA0 /* Pods_Pal_PadTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 510B6B79CC9321D00943F2A5 /* Pods_Pal_PadTests.framework */; };
 /* End PBXBuildFile section */
@@ -70,6 +72,8 @@
 		B3B4D3A523B3E975005840B9 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
 		B3B4D3A723B3E99F005840B9 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		B3B4D3A923B44D39005840B9 /* ImportLimitlessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportLimitlessView.swift; sourceTree = "<group>"; };
+		B3B4D3B623B511D9005840B9 /* Sets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sets.swift; sourceTree = "<group>"; };
+		B3B4D3B823B51FFD005840B9 /* Images.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Images.swift; sourceTree = "<group>"; };
 		C29815343AA27470BAA95F78 /* Pods-Pal Pad-Pal PadUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pal Pad-Pal PadUITests.debug.xcconfig"; path = "Target Support Files/Pods-Pal Pad-Pal PadUITests/Pods-Pal Pad-Pal PadUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		D0178C6B61842A7DB291089B /* Pods-Pal Pad.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pal Pad.debug.xcconfig"; path = "Target Support Files/Pods-Pal Pad/Pods-Pal Pad.debug.xcconfig"; sourceTree = "<group>"; };
 		F196E8025F1B432FEB837515 /* Pods-Pal PadTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pal PadTests.release.xcconfig"; path = "Target Support Files/Pods-Pal PadTests/Pods-Pal PadTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -143,6 +147,7 @@
 		B30BF54023AD5CA5008F7E60 /* vmax */ = {
 			isa = PBXGroup;
 			children = (
+				B3B4D3B523B511C1005840B9 /* Helpers */,
 				B30BF54123AD5CA5008F7E60 /* AppDelegate.swift */,
 				B3B4D3A423B3E948005840B9 /* Classes */,
 				B30BF54323AD5CA5008F7E60 /* SceneDelegate.swift */,
@@ -192,6 +197,15 @@
 				B3B4D3A723B3E99F005840B9 /* Card.swift */,
 			);
 			path = Classes;
+			sourceTree = "<group>";
+		};
+		B3B4D3B523B511C1005840B9 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				B3B4D3B623B511D9005840B9 /* Sets.swift */,
+				B3B4D3B823B51FFD005840B9 /* Images.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 		D1E1915720E32C4EAE49D49E /* Frameworks */ = {
@@ -451,6 +465,8 @@
 			files = (
 				B3B4D3A623B3E975005840B9 /* Deck.swift in Sources */,
 				B30BF57A23B03DBC008F7E60 /* DeckView.swift in Sources */,
+				B3B4D3B723B511D9005840B9 /* Sets.swift in Sources */,
+				B3B4D3B923B51FFD005840B9 /* Images.swift in Sources */,
 				B30BF57223AD9F3F008F7E60 /* SearchView.swift in Sources */,
 				B30BF54223AD5CA5008F7E60 /* AppDelegate.swift in Sources */,
 				B30BF54423AD5CA5008F7E60 /* SceneDelegate.swift in Sources */,

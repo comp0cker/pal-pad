@@ -25,7 +25,9 @@ struct ContentView: View {
     @State var loadedDeck: String = ""
     @State var deck: Deck = Deck(name: "New Deck")
     
-    @State var showImportDeck: Bool = true
+    @State var showImportDeck: Bool = false
+    @State var showLimitlessView: Bool = false
+    @State var changedSomething: Bool = false
 
     func deckOn() {
         deckViewOn = true
@@ -62,12 +64,7 @@ struct ContentView: View {
     }
     
     func importLimitless() {
-        let alertHC = UIHostingController(rootView: ImportLimitlessView())
-
-        alertHC.preferredContentSize = CGSize(width: 300, height: 200)
-        alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-
-        UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
+        showLimitlessView = true
     }
     
     var body: some View {
@@ -118,13 +115,16 @@ struct ContentView: View {
                                     buttons: [.default(Text("PTCGO import")),
                                               .default(Text("Limitless import"), action: {self.importLimitless()})])
                     }
+                        .sheet(isPresented: $showLimitlessView) {
+                            ImportLimitlessView(deckViewOn: self.$deckViewOn, limitlessViewOn: self.$showLimitlessView, deck: self.$deck, changedSomething: self.$changedSomething)
+                        }
 //                    Button(action: {
 //                        let defaults = UserDefaults.standard
 //                        defaults.set("", forKey: "decks")
 //                    }) {
 //                        Text("w i p e")
 //                    }
-                    NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn), isActive: $deckViewOn) {
+                        NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn, changedSomething: $changedSomething), isActive: $deckViewOn) {
                         EmptyView()
                     }
                 }.navigationBarTitle("Pal Pad 📔")

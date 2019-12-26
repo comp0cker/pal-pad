@@ -23,7 +23,7 @@ struct DeckView: View {
     
     @State private var tooManyCardsAlert = false
     
-    @State private var changedSomething = false
+    @Binding var changedSomething: Bool
     
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
@@ -189,7 +189,6 @@ struct DeckView: View {
                 HStack {
                     self.save()
                     self.delete()
-                    
                     
                     Button(action: {
                         let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething))

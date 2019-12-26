@@ -39,6 +39,17 @@ class Deck: ObservableObject {
         }
     }
     
+    func addLimitlessCard(card: Card) {
+        let duplicateCard =  cards.contains {$0.id == card.id}
+        if duplicateCard {
+            print("duplicate card!")
+            let index = cards.firstIndex {$0.id == card.id}
+        }
+        else {
+            cards.append(card)
+        }
+    }
+    
     func changeCardCount(index: Int, incr: Int) {
         cards[index].incrCount(incr: incr)
         

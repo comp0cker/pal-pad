@@ -26,6 +26,18 @@ class Card: ObservableObject {
         self.count = 1
     }
     
+    init(content: [String: Any], count: Int) {
+        self.content = content
+        self.image = Image(systemName: "cloud.heavyrain.fill")
+        
+        self.id = ""
+        if let id = content["id"] as? String {
+            self.id = id
+        }
+        
+        self.count = count
+    }
+    
     func getSupertype() -> String {
         return content["supertype"] as! String
     }
@@ -43,6 +55,8 @@ class Card: ObservableObject {
         if let number = cardDict["number"] as? String {
             url += number + ".png"
         }
+        
+        url = handleImageUrlExceptions(contents: cardDict)
         
         return URL(string: url)!
     }

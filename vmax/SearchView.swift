@@ -108,6 +108,7 @@ struct SearchView: View {
         else {
             sets = defaults.object(forKey: "sets") as? [[String: Any]] ?? [[String: Any]]()
             print("NICE")
+            // OH NO FIX THIS
         }
     }
     

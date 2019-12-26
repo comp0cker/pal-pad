@@ -49,7 +49,7 @@ struct SaveDeck: View {
                     }
                     Spacer()
                 }
-            }.background(Color(white: 1))
+            }
         .padding()
     }
 }
