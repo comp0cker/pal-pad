@@ -1,0 +1,6 @@
+framework module Pods_Pal_Pad {
+  umbrella header "Pods-Pal Pad-umbrella.h"
+
+  export *
+  module * { export * }
+}

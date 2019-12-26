@@ -1,0 +1,6 @@
+framework module Pods_Pal_Pad_Pal_PadUITests {
+  umbrella header "Pods-Pal Pad-Pal PadUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}

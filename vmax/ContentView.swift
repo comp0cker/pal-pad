@@ -24,6 +24,8 @@ struct ContentView: View {
     @ObservedObject var savedDecks: SavedDecks = SavedDecks()
     @State var loadedDeck: String = ""
     @State var deck: Deck = Deck(name: "New Deck")
+    
+    @State var showImportDeck: Bool = true
 
     func deckOn() {
         deckViewOn = true
@@ -57,6 +59,15 @@ struct ContentView: View {
                 print("Failed to load: \(error.localizedDescription)")
             }
         }
+    }
+    
+    func importLimitless() {
+        let alertHC = UIHostingController(rootView: ImportLimitlessView())
+
+        alertHC.preferredContentSize = CGSize(width: 300, height: 200)
+        alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+
+        UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
     }
     
     var body: some View {
@@ -97,6 +108,15 @@ struct ContentView: View {
                         }) {
                             Text("➕ New Deck")
                         }
+                        
+                        Button(action: {
+                            self.showImportDeck = true
+                        }) {
+                            Text("➕ Import Deck")
+                        }.actionSheet(isPresented: self.$showImportDeck) {
+                        ActionSheet(title: Text("How would you like to import deck?"), message: Text("You can either import by pasting in a PTCGO style deck list, or by browsing decks on limitlesstcg.com."),
+                                    buttons: [.default(Text("PTCGO import")),
+                                              .default(Text("Limitless import"), action: {self.importLimitless()})])
                     }
 //                    Button(action: {
 //                        let defaults = UserDefaults.standard
@@ -107,8 +127,9 @@ struct ContentView: View {
                     NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn), isActive: $deckViewOn) {
                         EmptyView()
                     }
-                }.navigationBarTitle("vmax")
+                }.navigationBarTitle("Pal Pad 📔")
             }
         }
     }
+}
 }
