@@ -46,7 +46,7 @@ struct SaveDeck: View {
                         Text("Done")
                     }
                     Button(action: {
-                        UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
+                    UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
                     }) {
                         Text("Cancel")
                     }

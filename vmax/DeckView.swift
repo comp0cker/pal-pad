@@ -211,6 +211,7 @@ struct DeckView: View {
                 
                 Button(action: {
                     self.showExportImageView = false
+                    self.deck.name = self.title
                     
                     let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode)
                     self.activityViewController.shareImage(uiImage: uiImage)
