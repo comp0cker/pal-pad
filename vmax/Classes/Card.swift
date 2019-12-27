@@ -10,13 +10,12 @@ import SwiftUI
 
 class Card: ObservableObject {
     @Published var content: [String: Any]
-    @Published var image: Image
+    @Published var image: UIImage!
     @Published var count: Int
     @Published var id: String
     
     init(content: [String: Any]) {
         self.content = content
-        self.image = Image(systemName: "cloud.heavyrain.fill")
         
         self.id = ""
         if let id = content["id"] as? String {
@@ -28,7 +27,6 @@ class Card: ObservableObject {
     
     init(content: [String: Any], count: Int) {
         self.content = content
-        self.image = Image(systemName: "cloud.heavyrain.fill")
         
         self.id = ""
         if let id = content["id"] as? String {
@@ -61,14 +59,14 @@ class Card: ObservableObject {
         return URL(string: url)!
     }
     
-    func getImageFromData(data: Data) -> Image {
+    func getImageFromData(data: Data) -> UIImage {
         let uiImage = UIImage(data: data)!
         
         UIGraphicsBeginImageContext(CGSize(width: imageWidth, height: imageHeight))
         uiImage.draw(in: CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        return Image(uiImage: newImage!)
+        return newImage!
     }
     
     func incrCount(incr: Int) {

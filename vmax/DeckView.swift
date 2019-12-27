@@ -10,6 +10,8 @@ import SwiftUI
 import Combine
 
 struct DeckView: View {
+    let activityViewController = SwiftUIActivityViewController()
+    
     @State var showSaveDeck: Bool = false
     @State var showDeleteDeck: Bool = false
     @State private var saveDeckName: String = ""
@@ -17,6 +19,7 @@ struct DeckView: View {
     @State var title: String
     @ObservedObject var savedDecks: SavedDecks
     @Binding var deckViewOn: Bool
+    @State var showExportImageView: Bool = false
     
     @State private var firstPosition: CGSize = .zero
     @State private var newPosition: CGSize = .zero
@@ -24,6 +27,9 @@ struct DeckView: View {
     @State private var tooManyCardsAlert = false
     
     @Binding var changedSomething: Bool
+    
+    @State var portraitMode: Bool = true
+    @State var stacked: Bool = true
     
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
@@ -51,7 +57,7 @@ struct DeckView: View {
         
         return AnyView(
             ZStack {
-            cards[rowNumber * 3 + columnNumber].image
+                Image(uiImage: cards[rowNumber * 3 + columnNumber].image)
             Circle()
                 .frame(width: 40, height: 40)
                 .padding(.top, 100)
@@ -74,7 +80,10 @@ struct DeckView: View {
                 .onEnded { value in
                     self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
                     
-                    if (self.newPosition.width > self.firstPosition.width) {
+                    let newWidth = Int(self.newPosition.width)
+                    let firstWidth = Int(self.firstPosition.width)
+                    
+                    if (newWidth > firstWidth + swipeLRTolerance) {
                         if (self.deck.cards[index].count == 4 && !self.deck.cards[index].ifBasicEnergy()) {
                             self.tooManyCardsAlert = true
                             
@@ -90,7 +99,7 @@ struct DeckView: View {
                             generator.selectionChanged()
                         }
                     }
-                    else if (self.newPosition.width < self.firstPosition.width) {
+                    else if (newWidth + swipeLRTolerance < firstWidth) {
                         self.incrCard(index: index, incr: -1)
                         
                         // bzzt
@@ -125,26 +134,41 @@ struct DeckView: View {
                 
                 return
             }
-            
-            self.title = ""
-            let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks, deckName: self.$title))
-
-            alertHC.preferredContentSize = CGSize(width: 300, height: 200)
-            alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-
-            UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
+            else {
+                self.editDeck()
+            }
         })
         {
-            Text("Save Deck")
+            Text("Save")
             })
             : AnyView(Text("Saved ✅").foregroundColor(Color.green))
+    }
+    
+    func edit() -> some View {
+        return AnyView(Button(action: {
+            self.editDeck()
+        })
+        {
+            Text("Edit")
+        })
+    }
+    
+    func editDeck() {
+        let oldDeckName = self.title
+        self.title = ""
+        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks, deckName: self.$title, oldDeckName: oldDeckName))
+
+        alertHC.preferredContentSize = CGSize(width: 300, height: 200)
+        alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+
+        UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)
     }
     
     func delete() -> some View {
         return Button(action: {
             self.showDeleteDeck = true
         }) {
-            Text("Delete deck")
+            Text("Delete")
                 .foregroundColor(Color.red)
         }.actionSheet(isPresented: self.$showDeleteDeck) {
             ActionSheet(title: Text("Are you sure you want to delete " + self.deck.name + "?"), message: Text("Deleting will remove all data."),
@@ -165,7 +189,40 @@ struct DeckView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
+        self.saveDeckName = ""
         self.deckViewOn = false
+    }
+    
+    func export() -> some View{
+        return AnyView( Button(action: {
+            self.showExportImageView = true
+        }) {
+            Text("Export")
+        })
+        .sheet(isPresented: $showExportImageView) {
+            VStack {
+                Toggle(isOn: self.$portraitMode) {
+                    Text("Portrait mode (up and down ways image)")
+                }.padding()
+                
+                Toggle(isOn: self.$stacked) {
+                    Text("Visible stacking of cards in image")
+                }.padding()
+                
+                Button(action: {
+                    self.showExportImageView = false
+                    
+                    let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode)
+                    self.activityViewController.shareImage(uiImage: uiImage)
+                }) {
+                    ZStack {
+                        self.activityViewController
+                        Text("Generate output")
+                    }
+
+                }
+            }
+        }
     }
     
     var body: some View {
@@ -185,10 +242,20 @@ struct DeckView: View {
             ctr += 1
         }
         
+        var title = self.title + " (" + String(self.deck.cardCount()) + ")"
+        if self.deck.cardCount() != 60 {
+            title += " ⚠️"
+        }
+        else {
+            title += " ✔️"
+        }
+        
         return VStack(alignment: .leading) {
                 HStack {
                     self.save()
+                    self.edit()
                     self.delete()
+                    self.export()
                     
                     Button(action: {
                         let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething))
@@ -220,7 +287,7 @@ struct DeckView: View {
                         }
                     }
                 }
-        }.navigationBarTitle(self.title)
+        }.navigationBarTitle(title)
         .padding()
         }
     }

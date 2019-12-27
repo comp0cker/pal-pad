@@ -12,6 +12,8 @@ struct SaveDeck: View {
     @ObservedObject var deck: Deck
     @ObservedObject var savedDecks: SavedDecks
     @Binding var deckName: String
+    @State var oldDeckName: String
+    @State var initSet: Bool = true
     
     func storeDeck() {
         let defaults = UserDefaults.standard
@@ -20,6 +22,7 @@ struct SaveDeck: View {
             newDecks = defaults.object(forKey: "decks") as? [String: String] ?? [String: String]()
         }
 
+        newDecks.removeValue(forKey: oldDeckName)
         newDecks[deckName] = deck.deckOutput()
         defaults.set(newDecks, forKey: "decks")
         
@@ -34,7 +37,7 @@ struct SaveDeck: View {
     }
 
     var body: some View {
-        VStack {
+        return VStack {
             Text("Please enter a deck name")
             TextField("Deck name", text: $deckName)
             Divider()
@@ -49,7 +52,6 @@ struct SaveDeck: View {
                     }
                     Spacer()
                 }
-            }
-        .padding()
+        }.padding()
     }
 }

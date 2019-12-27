@@ -125,7 +125,7 @@ struct SearchView: View {
     
     func searchResultView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
         return Button(action: {self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber])}) {
-            rowNumber * 3 + columnNumber >= cards.count ? Image(systemName: "card") : cards[rowNumber * 3 + columnNumber].image.renderingMode(.original)
+            rowNumber * 3 + columnNumber >= cards.count ? Image(systemName: "card") : Image(uiImage: cards[rowNumber * 3 + columnNumber].image).renderingMode(.original)
         }
     }
     

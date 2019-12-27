@@ -59,12 +59,20 @@ class Deck: ObservableObject {
         }
     }
     
-    func getImage(index: Int) -> Image {
+    func getImage(index: Int) -> UIImage {
         return cards[index].image
     }
     
     func uniqueCardCount() -> Int {
         return self.cards.count
+    }
+    
+    func cardCount() -> Int {
+        var ctr = 0
+        for card in self.cards {
+            ctr += card.count
+        }
+        return ctr
     }
     
     func cardCount(index: Int) -> Int {

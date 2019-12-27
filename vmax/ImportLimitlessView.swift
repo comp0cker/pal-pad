@@ -158,6 +158,7 @@ struct LimitlessArchetypeView: View {
     
     func getDeck(href: String) {
         changedSomething = true
+        self.deck.clear()
         
         // scrape limitless
         let url = URL(string: limitlessUrlBase + href)!
@@ -195,7 +196,6 @@ struct LimitlessArchetypeView: View {
                     }
                     
                     
-                    print("CHECK")
                     if "0"..."9" ~= cardNumber.prefix(1) || "sm" == cardNumber.prefix(2) {
                         urlString += "&setCode=" + cardSet + "&number=" + cardNumber
                     }
@@ -243,7 +243,7 @@ struct LimitlessArchetypeView: View {
                 }
                 ctr += 1
             }
-            print(self.deck.cards.count)
+            self.deck.name = "New Deck"
             self.limitlessViewOn = false
             self.deckViewOn = true
         }
