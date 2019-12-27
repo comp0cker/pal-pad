@@ -25,7 +25,7 @@ struct testingParams {
     var additionalYpadding: Int
 }
 
-func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, testing: Bool, imageFactor: Int, additionalYPadding: Int) -> testingParams {
+func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: Bool, testing: Bool, imageFactor: Int, additionalYPadding: Int) -> testingParams {
     var width: Int = 1920
     var height: Int = 1080
     
@@ -51,21 +51,20 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, testing: Bool,
     var currentY = Ypadding + additionalYPadding
     
     
-    let fontSize: Int = 76
+//    let fontSize: Int = 76
+//
+//    let attrs: [NSAttributedString.Key: Any] = [
+//        .font: UIFont.boldSystemFont(ofSize: CGFloat(fontSize)),
+//    ]
+//
+//    let string = deck.name
+//    let attributedString = NSAttributedString(string: string, attributes: attrs)
+//
+//    if !testing {
+//        attributedString.draw(with: CGRect(x: currentX, y: currentY, width: width, height: fontSize), options: .usesLineFragmentOrigin, context: nil)
+//    }
 
-    let attrs: [NSAttributedString.Key: Any] = [
-        .font: UIFont.boldSystemFont(ofSize: CGFloat(fontSize)),
-    ]
-
-    let string = deck.name
-    let attributedString = NSAttributedString(string: string, attributes: attrs)
-
-    if !testing {
-        attributedString.draw(with: CGRect(x: currentX, y: currentY, width: width, height: fontSize), options: .usesLineFragmentOrigin, context: nil)
-    }
-
-    currentY += fontSize + additionalYPadding + Ypadding
-    
+//    currentY += fontSize + additionalYPadding + Ypadding
     
     let supertypes = ["Pokémon", "Trainer", "Energy"]
     for supertype in supertypes {
@@ -100,28 +99,33 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, testing: Bool,
                 currentX += imageWidth
             }
         }
-        
-        currentX = Xpadding
+        if (newTypeLines) {
+            currentX = Xpadding
+            currentY += imageHeight + Ypadding
+        }
+    }
+    
+    if !newTypeLines {
         currentY += imageHeight + Ypadding
     }
 
 
     if currentY < height {
-        return testingParams(imageFactor: imageFactor, additionalYpadding: (height - currentY) / 3)
+        return testingParams(imageFactor: imageFactor, additionalYpadding: (height - currentY) / 2)
     }
     return testingParams(imageFactor: -1, additionalYpadding: 0)
 }
 
 extension UIImage {
 
-    static func imageByMergingImages(deck: Deck, stacked: Bool, portraitMode: Bool) -> UIImage {
+    static func imageByMergingImages(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: Bool) -> UIImage {
         let imageFactorRange = 5...20 // just in case...
         var imageFactor: Int = -1
         var additionalYPadding: Int = 0
         
         for fct in imageFactorRange {
             print("trying factor " + String(fct))
-            let t: testingParams = drawCardImage(deck: deck, stacked: stacked, portraitMode: portraitMode, testing: true, imageFactor: fct, additionalYPadding: 0)
+            let t: testingParams = drawCardImage(deck: deck, stacked: stacked, portraitMode: portraitMode, newTypeLines: newTypeLines, testing: true, imageFactor: fct, additionalYPadding: 0)
             
             imageFactor = t.imageFactor
             if imageFactor > 0 {
@@ -129,7 +133,7 @@ extension UIImage {
                 break
             }
         }
-        drawCardImage(deck: deck, stacked: stacked, portraitMode: portraitMode, testing: false, imageFactor: imageFactor, additionalYPadding: additionalYPadding)
+        drawCardImage(deck: deck, stacked: stacked, portraitMode: portraitMode, newTypeLines: newTypeLines, testing: false, imageFactor: imageFactor, additionalYPadding: additionalYPadding)
         
         return UIGraphicsGetImageFromCurrentImageContext()!
     }
