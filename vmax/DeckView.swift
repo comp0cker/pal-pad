@@ -31,6 +31,7 @@ struct DeckView: View {
     @State var portraitMode: Bool = true
     @State var stacked: Bool = true
     @State var newTypeLines: Bool = false
+    @State var showTitle: Bool = false
     
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
@@ -207,18 +208,22 @@ struct DeckView: View {
                 }.padding()
                 
                 Toggle(isOn: self.$stacked) {
-                    Text("Visible stacking of cards in image")
+                    Text("Visible stacking of cards in image as opposed to a number on each card")
                 }.padding()
                 
                 Toggle(isOn: self.$newTypeLines) {
                     Text("New lines for Pokemon, Trainer, Energy types (usually makes cards smaller)")
                 }.padding()
                 
+                Toggle(isOn: self.$showTitle) {
+                    Text("Shows title at the top (also makes cards smaller)")
+                }.padding()
+                
                 Button(action: {
                     self.showExportImageView = false
                     self.deck.name = self.title
                     
-                    let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines)
+                    let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines, showTitle: self.showTitle)
                     self.activityViewController.shareImage(uiImage: uiImage)
                 }) {
                     ZStack {
