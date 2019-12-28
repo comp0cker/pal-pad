@@ -9,6 +9,12 @@
 import SwiftUI
 import Combine
 
+struct HomeView {
+    var name: String
+    var legality: String
+    var deck: String
+}
+
 class SavedDecks: ObservableObject {
     @Published var list: [String: String] = UserDefaults.standard.object(forKey: "decks") as? [String: String] ?? [String: String]()
     
@@ -35,31 +41,35 @@ struct ContentView: View {
     
     func loadDeck(json: [[String: String]], name: String) {
         self.deck = Deck(name: name)
+        var actuallyRun = false
         
         for card in json {
-            let content = card["content"]!
-            let count = Int(card["count"]!)!
-            
-            let data = Data(content.utf8)
-            do {
-                // make sure this JSON is in the format we expect
-                if let cardDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    
-                    var c = Card(content: cardDict)
-                    // DUPLICATE CODE
-                    let imageUrl = c.getImageUrl(cardDict: cardDict)
-                    let task = URLSession.shared.dataTask(with: imageUrl) { (imgData, response, error) in
-                        if error == nil {
-                            c.image = c.getImageFromData(data: imgData!)
-                            c.count = count
-                            self.deck.addCard(card: c)
+            if actuallyRun {
+                let content = card["content"]!
+                let count = Int(card["count"]!)!
+                
+                let data = Data(content.utf8)
+                do {
+                    // make sure this JSON is in the format we expect
+                    if let cardDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        
+                        var c = Card(content: cardDict)
+                        // DUPLICATE CODE
+                        let imageUrl = c.getImageUrl(cardDict: cardDict)
+                        let task = URLSession.shared.dataTask(with: imageUrl) { (imgData, response, error) in
+                            if error == nil {
+                                c.image = c.getImageFromData(data: imgData!)
+                                c.count = count
+                                self.deck.addCard(card: c, legality: true)
+                            }
                         }
+                        task.resume()
                     }
-                    task.resume()
+                } catch let error as NSError {
+                    print("Failed to load: \(error.localizedDescription)")
                 }
-            } catch let error as NSError {
-                print("Failed to load: \(error.localizedDescription)")
             }
+            actuallyRun = true
         }
     }
     
@@ -67,36 +77,66 @@ struct ContentView: View {
         showLimitlessView = true
     }
     
+    func getLegality(deck: String) -> String {
+        let data = Data(deck.utf8)
+        do {
+            // make sure this JSON is in the format we expect
+            if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: String]] {
+                let legality = json[0]["legality"]
+                return legality!
+            }
+            else {
+                print("poop")
+            }
+        } catch let error as NSError {
+            print("Failed to load: \(error.localizedDescription)")
+        }
+        return "null"
+    }
+    
     var body: some View {
-        let names = self.savedDecks.list.map{$0.key}
-        let decks = self.savedDecks.list.map {$0.value}
-        
+        var decks: [HomeView] = self.savedDecks.list.map {HomeView(name: $0.key, legality: getLegality(deck: $0.value), deck: $0.value)}
+        var legalities = ["Standard", "Expanded", "Unlimited"]
+        var legalityDecks: [[HomeView]] = []
+        for legality in legalities {
+            legalityDecks.append(decks.filter{$0.legality == legality})
+        }
+
         return VStack {
             NavigationView {
                 VStack(alignment: .leading) {
                     List {
-                        ForEach (0 ..< names.count, id: \.self) { pos in
-                            Button(action: {
-                                self.loadedDeck = decks[pos]
-                                let name = names[pos]
-                                let data = Data(self.loadedDeck.utf8)
+                        ForEach (0 ..< legalities.count, id: \.self) { legalityPos in
+                            Group {
+                                Text(legalities[legalityPos])
+                                .font(.title)
+                                .fontWeight(.bold)
+                                
+                                ForEach (0 ..< legalityDecks[legalityPos].count, id: \.self) { pos in
+                                    Button(action: {
+                                        self.loadedDeck = legalityDecks[legalityPos][pos].deck
+                                        let name = legalityDecks[legalityPos][pos].name
+                                        let data = Data(self.loadedDeck.utf8)
 
-                                do {
-                                    // make sure this JSON is in the format we expect
-                                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: String]] {
-                                        self.loadDeck(json: json, name: name)
-                                        // try to read out a string array
+                                        do {
+                                            // make sure this JSON is in the format we expect
+                                            if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: String]] {
+                                                self.loadDeck(json: json, name: name)
+                                                // try to read out a string array
 
+                                            }
+                                        } catch let error as NSError {
+                                            print("Failed to load: \(error.localizedDescription)")
+                                        }
+                                        
+                                        self.deckOn()
+                                        
+                                    }) {
+                                        Text(legalityDecks[legalityPos][pos].name)
                                     }
-                                } catch let error as NSError {
-                                    print("Failed to load: \(error.localizedDescription)")
                                 }
-                                
-                                self.deckOn()
-                                
-                            }) {
-                                Text(names[pos])
                             }
+
                         }
 
                         Button(action: {
@@ -129,7 +169,26 @@ struct ContentView: View {
                     }
                 }.navigationBarTitle("Pal Pad 📔")
             }
-        }
+            }.onAppear() {
+                let defaults = UserDefaults.standard
+                if !defaults.bool(forKey: "sets") {
+                    let setLegalityUrl = URL(string: urlBase + "sets")!
+                    let initTask = URLSession.shared.dataTask(with: setLegalityUrl) { (data, response, error) in
+                        if error == nil {
+                           let json = try? JSONSerialization.jsonObject(with: data!, options: [])
+                            if let dict = json as? [String: Any] {
+                                if let sets = dict["sets"] as? [[String: Any]] {
+                                    defaults.set(sets, forKey: "sets")
+                                }
+                            }
+                            else {
+                                print("oh no")
+                            }
+                        }
+                    }
+                    initTask.resume()
+                }
+            }
     }
 }
 }

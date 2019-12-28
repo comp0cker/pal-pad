@@ -9,9 +9,6 @@
 import SwiftUI
 import Combine
 
-let urlBase = "https://api.pokemontcg.io/v1/"
-let imageUrlBase = "https://images.pokemontcg.io/"
-
 let imageWidth: CGFloat = UIScreen.main.bounds.width / 4
 let imageHeight: CGFloat = imageWidth * 343 / 246
 
@@ -44,7 +41,7 @@ struct SearchView: View {
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
                 c.image = c.getImageFromData(data: data!)
-                self.searchResults.addCard(card: c)
+                self.searchResults.addCard(card: c, legality: false)
             }
         }
         task.resume()
@@ -118,7 +115,7 @@ struct SearchView: View {
         generator.notificationOccurred(.success)
         
         var newDeck: Deck = deck
-        newDeck.addCard(card: card)
+        newDeck.addCard(card: card, legality: true)
         changedSomething = true
         UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
     }

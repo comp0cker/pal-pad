@@ -10,8 +10,6 @@ import SwiftUI
 import Combine
 
 struct DeckView: View {
-    let activityViewController = SwiftUIActivityViewController()
-    
     @State var showSaveDeck: Bool = false
     @State var showDeleteDeck: Bool = false
     @State private var saveDeckName: String = ""
@@ -27,11 +25,7 @@ struct DeckView: View {
     @State private var tooManyCardsAlert = false
     
     @Binding var changedSomething: Bool
-    
-    @State var portraitMode: Bool = true
-    @State var stacked: Bool = true
-    @State var newTypeLines: Bool = false
-    @State var showTitle: Bool = false
+    @State var cardsLoaded: Bool = false
     
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
@@ -73,7 +67,7 @@ struct DeckView: View {
                 .foregroundColor(Color.black)
                 .fontWeight(.bold)
                 .padding(.top, 100)
-        }.gesture(DragGesture()
+        }.simultaneousGesture(DragGesture()
                 .onChanged { value in
                     if self.firstPosition == .zero {
                         self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
@@ -202,37 +196,7 @@ struct DeckView: View {
             Text("Export")
         })
         .sheet(isPresented: $showExportImageView) {
-            VStack {
-                Toggle(isOn: self.$portraitMode) {
-                    Text("Portrait mode (up and down ways image)")
-                }.padding()
-                
-                Toggle(isOn: self.$stacked) {
-                    Text("Visible stacking of cards in image as opposed to a number on each card")
-                }.padding()
-                
-                Toggle(isOn: self.$newTypeLines) {
-                    Text("New lines for Pokemon, Trainer, Energy types (usually makes cards smaller)")
-                }.padding()
-                
-                Toggle(isOn: self.$showTitle) {
-                    Text("Shows title at the top (also makes cards smaller)")
-                }.padding()
-                
-                Button(action: {
-                    self.showExportImageView = false
-                    self.deck.name = self.title
-                    
-                    let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines, showTitle: self.showTitle)
-                    self.activityViewController.shareImage(uiImage: uiImage)
-                }) {
-                    ZStack {
-                        self.activityViewController
-                        Text("Generate output")
-                    }
-
-                }
-            }
+            ExportImageView(showExportImageView: self.$showExportImageView, deck: self.deck, title: self.$title)
         }
     }
     
@@ -253,15 +217,29 @@ struct DeckView: View {
             ctr += 1
         }
         
-        var title = self.title + " (" + String(self.deck.cardCount()) + ")"
+        var subtitle = String(self.deck.cardCount()) + " cards"
         if self.deck.cardCount() != 60 {
-            title += " ⚠️"
+            subtitle += " ⚠️"
         }
         else {
-            title += " ✔️"
+            subtitle += " ✔️"
         }
         
+        let subtitleView = Text(subtitle)
+        .font(.title)
+        .fontWeight(.bold)
+        .foregroundColor(.gray)
+        
+        let legality = deck.standardLegal ? "Standard" : deck.expandedLegal ? "Expanded" : "Unlimited"
+        
+        let formatView = Text(legality + " legal")
+        .font(.title)
+        .fontWeight(.bold)
+        .foregroundColor(.gray)
+        
         return VStack(alignment: .leading) {
+                subtitleView
+                formatView
                 HStack {
                     self.save()
                     self.edit()
@@ -298,7 +276,7 @@ struct DeckView: View {
                         }
                     }
                 }
-        }.navigationBarTitle(title)
-        .padding()
+        }.navigationBarTitle(self.title)
+            .padding()
         }
     }
