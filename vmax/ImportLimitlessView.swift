@@ -117,20 +117,6 @@ struct LimitlessArchetypeView: View {
         task.resume()
     }
     
-    func setConvert(ptcgoCode: String) -> String {
-        if ptcgoCode == "smp" {
-            return "smp"
-        }
-        
-        print(ptcgoCode)
-        let code = ptcgoCode.uppercased()
-        let target = self.sets.filter { set in
-            let grabbedPtcgoCode = set["ptcgoCode"] as? String
-            return code == grabbedPtcgoCode
-        }[0]
-        return (target["code"] as? String)!
-    }
-    
     func getSets(href: String) {
         // this immediately calls getDeck on execution
         if self.sets.count > 0 {
@@ -184,7 +170,7 @@ struct LimitlessArchetypeView: View {
                     
                     guard let cardHref: String = try? card.attr("href") else { return }
                     let hrefSplit = cardHref.components(separatedBy: "/")
-                    let cardSet = self.setConvert(ptcgoCode: hrefSplit[2])
+                    let cardSet = setConvert(ptcgoCode: hrefSplit[2])
                     let cardNumber: String = hrefSplit[3]
                     var urlString = urlBase
 
@@ -196,9 +182,15 @@ struct LimitlessArchetypeView: View {
                     }
                     
                     
+                    // normal cards + promos
                     if "0"..."9" ~= cardNumber.prefix(1) || "sm" == cardNumber.prefix(2) {
                         urlString += "&setCode=" + cardSet + "&number=" + cardNumber
                     }
+                    // shiny vault
+                    else if "sv" == cardNumber.prefix(2) {
+                        urlString += "&number=" + cardNumber
+                    }
+                    // everything else should be basic energy
                     else {
                         urlString += "&setCode=" + energyVersion
                     }

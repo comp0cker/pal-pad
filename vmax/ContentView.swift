@@ -101,21 +101,26 @@ struct ContentView: View {
         for legality in legalities {
             legalityDecks.append(decks.filter{$0.legality == legality})
         }
+        
+        let realDecks = legalityDecks.filter{$0.count > 0}
 
         return VStack {
             NavigationView {
                 VStack(alignment: .leading) {
                     List {
-                        ForEach (0 ..< legalities.count, id: \.self) { legalityPos in
+                        NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn, changedSomething: $changedSomething), isActive: $deckViewOn) {
+                            Text("Most Recent: " + deck.name)
+                        }
+                        ForEach (0 ..< realDecks.count, id: \.self) { legalityPos in
                             Group {
-                                Text(legalities[legalityPos])
+                                Text(realDecks[legalityPos][0].legality)
                                 .font(.title)
                                 .fontWeight(.bold)
                                 
-                                ForEach (0 ..< legalityDecks[legalityPos].count, id: \.self) { pos in
+                                ForEach (0 ..< realDecks[legalityPos].count, id: \.self) { pos in
                                     Button(action: {
-                                        self.loadedDeck = legalityDecks[legalityPos][pos].deck
-                                        let name = legalityDecks[legalityPos][pos].name
+                                        self.loadedDeck = realDecks[legalityPos][pos].deck
+                                        let name = realDecks[legalityPos][pos].name
                                         let data = Data(self.loadedDeck.utf8)
 
                                         do {
@@ -132,7 +137,7 @@ struct ContentView: View {
                                         self.deckOn()
                                         
                                     }) {
-                                        Text(legalityDecks[legalityPos][pos].name)
+                                        Text(realDecks[legalityPos][pos].name)
                                     }
                                 }
                             }
@@ -149,7 +154,7 @@ struct ContentView: View {
                         Button(action: {
                             self.showImportDeck = true
                         }) {
-                            Text("➕ Import Deck")
+                            Text("⬇️ Import Deck")
                         }.actionSheet(isPresented: self.$showImportDeck) {
                         ActionSheet(title: Text("How would you like to import deck?"), message: Text("You can either import by pasting in a PTCGO style deck list, or by browsing decks on limitlesstcg.com."),
                                     buttons: [.default(Text("PTCGO import")),
@@ -164,12 +169,10 @@ struct ContentView: View {
 //                    }) {
 //                        Text("w i p e")
 //                    }
-                        NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn, changedSomething: $changedSomething), isActive: $deckViewOn) {
-                        EmptyView()
-                    }
                 }.navigationBarTitle("Pal Pad 📔")
             }
-            }.onAppear() {
+            }.navigationViewStyle(StackNavigationViewStyle())
+                .onAppear() {
                 let defaults = UserDefaults.standard
                 if !defaults.bool(forKey: "sets") {
                     let setLegalityUrl = URL(string: urlBase + "sets")!

@@ -13,6 +13,7 @@ struct ExportImageView: View {
     @State var stacked: Bool = true
     @State var newTypeLines: Bool = false
     @State var showTitle: Bool = false
+    @State var showDeckCopied: Bool = false
     
     @Binding var showExportImageView: Bool
     @ObservedObject var deck: Deck
@@ -20,6 +21,10 @@ struct ExportImageView: View {
     
     var body: some View {
         VStack {
+            Text("Image Output")
+                .font(.title)
+                .fontWeight(.bold)
+            
             Toggle(isOn: self.$portraitMode) {
                 Text("Portrait mode (up and down ways image)")
             }.padding()
@@ -46,9 +51,25 @@ struct ExportImageView: View {
                 UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
             }) {
                 ZStack {
-                    Text("Generate output")
+                    Text("Generate")
                 }
-
+            }
+            
+            Divider()
+            
+            Text("PTCGO Output")
+                .font(.title)
+                .fontWeight(.bold)
+            Button(action: {
+                let pasteboard = UIPasteboard.general
+                pasteboard.string = self.deck.ptcgoOutput()
+                self.showDeckCopied = true
+            }) {
+                ZStack {
+                    Text("Generate")
+                }
+            }.alert(isPresented: $showDeckCopied) {
+                Alert(title: Text("Deck list copied!"), message: Text("Paste anywhere for use."), dismissButton: .default(Text("Got it!")))
             }
         }
     }

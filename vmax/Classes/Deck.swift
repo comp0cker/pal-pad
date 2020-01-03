@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import SwiftSoup
 
 class Deck: ObservableObject {
     @Published var cards: [Card]
@@ -35,8 +36,27 @@ class Deck: ObservableObject {
     
     func cardsSame(cardContent: [String: Any], secondCardContent: [String: Any]) -> Bool {
         
+        // if they don't have the EXACT same name they're not the same card
+        if cardContent["name"] as! String != secondCardContent["name"] as! String {
+            return false
+        }
+        
+        // yes these cards are the same, but since they're from the same set
+        // we literally don't care at all
+        if cardContent["setCode"] as! String == secondCardContent["setCode"] as! String {
+            return false
+        }
+        
         if cardContent["supertype"] as! String == "Pokémon" {
+            if cardContent["attacks"] == nil {
+                return false
+            }
             let attacks = cardContent["attacks"] as! [Any]
+            
+            if secondCardContent["attacks"] == nil {
+                return false
+            }
+            
             let secondAttacks = secondCardContent["attacks"] as! [Any]
             if attacks.count != secondAttacks.count {
                 return false
@@ -44,15 +64,15 @@ class Deck: ObservableObject {
             for i in 0 ..< attacks.count {
                 let attack = attacks[i] as! [String: Any]
                 let secondAttack = secondAttacks[i] as! [String: Any]
-                if attack["text"] as! String != secondAttack["text"] as! String {
+                if (attack["name"] as! String != secondAttack["name"] as! String) || (attack["damage"] as! String != secondAttack["damage"] as! String) {
                     return false
                 }
             }
         }
         else {
-            let text = cardContent["text"] as! [String]
-            let secondText = secondCardContent["text"] as! [String]
-            if text[0] != secondText[0] {
+            let text = cardContent["name"] as! String
+            let secondText = secondCardContent["name"] as! String
+            if text != secondText {
                 return false
             }
         }
@@ -88,10 +108,16 @@ class Deck: ObservableObject {
                                 if !tempLegal {
                                     if standard {
                                         self.standardLegal = false
+                                        card.standardLegal = false
+                                        // print("EXPANDED CARD")
                                     }
                                     else {
                                         self.standardLegal = false
                                         self.expandedLegal = false
+                                        
+                                        card.standardLegal = false
+                                        card.expandedLegal = false
+                                        print("NOT AT ALL LEGAL")
                                     }
                                 }
                             }
@@ -128,11 +154,26 @@ class Deck: ObservableObject {
         let standardLegal: Bool = targetSet["standardLegal"] as! Bool
         let expandedLegal: Bool = targetSet["expandedLegal"] as! Bool
         
-        if !standardLegal {
-            self.checkReprintLegality(card: card, standard: true)
+        if ifBanned(card: card.content, format: "Standard") {
+            self.standardLegal = false
+            card.standardLegal = false
         }
-        else if !expandedLegal {
+        if ifBanned(card: card.content, format: "Expanded") {
+            print("banned")
+            self.expandedLegal = false
+            card.expandedLegal = false
+        }
+        
+        if standardLegal && !ifCardPromoLegal(card: card.content) {
+            self.standardLegal = false
+            card.standardLegal = false
+        }
+        
+        if !expandedLegal {
             self.checkReprintLegality(card: card, standard: false)
+        }
+        else if !standardLegal {
+            self.checkReprintLegality(card: card, standard: true)
         }
     }
     
@@ -214,5 +255,37 @@ class Deck: ObservableObject {
         }
         
         return json(from: out)!
+    }
+    
+    func ptcgoOutput() -> String {
+        var output = ""
+        
+        // copied code
+        let supertypes = ["Pokémon", "Trainer", "Energy"]
+        var supertypeCards: [[Card]] = []
+        var supertypeCounts: [Int] = [0, 0, 0]
+        
+        var ctr = 0
+        for supertype in supertypes {
+            let filteredCards = self.cards.filter { $0.getSupertype() == supertype }
+            supertypeCards.append(filteredCards)
+            for card in filteredCards {
+                supertypeCounts[ctr] += card.count
+            }
+            
+            ctr += 1
+        }
+        
+        ctr = 0
+        for supertype in supertypes {
+            output += supertype + " - " + String(supertypeCounts[ctr]) + "\n"
+            for card in self.cards.filter({ $0.getSupertype() == supertype }) {
+                let ptcgoSetCode: String = setConvertToPtcgo(regularCode: card.content["setCode"] as! String)
+                output += String(card.count) + " " + (card.content["name"] as! String)
+                output += " " + ptcgoSetCode + " " + (card.content["number"] as! String) + "\n"
+            }
+            ctr += 1
+        }
+        return output
     }
 }

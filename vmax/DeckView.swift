@@ -67,13 +67,15 @@ struct DeckView: View {
                 .foregroundColor(Color.black)
                 .fontWeight(.bold)
                 .padding(.top, 100)
-        }.simultaneousGesture(DragGesture()
+                }
+                .gesture(DragGesture()
                 .onChanged { value in
                     if self.firstPosition == .zero {
                         self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
                     }
             }   // 4.
                 .onEnded { value in
+                    print("HI")
                     self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
                     
                     let newWidth = Int(self.newPosition.width)
@@ -103,7 +105,7 @@ struct DeckView: View {
                         generator.selectionChanged()
                     }
                     self.firstPosition = .zero
-            })
+                })
         .alert(isPresented: $tooManyCardsAlert) {
             Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
         }

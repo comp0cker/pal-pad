@@ -41,7 +41,7 @@ struct SearchView: View {
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
                 c.image = c.getImageFromData(data: data!)
-                self.searchResults.addCard(card: c, legality: false)
+                self.searchResults.addCard(card: c, legality: true)
             }
         }
         task.resume()
@@ -127,25 +127,16 @@ struct SearchView: View {
     }
     
     func ifCardLegal(card: Card, legality: String) -> Bool {
-        let selectedSet = self.sets.filter { set in
-            let setName = set["name"] as? String
-            let cardSetName = card.content["set"] as? String
-            return setName! == cardSetName!
-        }
-        let standardLegal = selectedSet[0]["standardLegal"] as? Bool
-        let expandedLegal = selectedSet[0]["expandedLegal"] as? Bool
-        
         if legality == "Standard" {
-            return standardLegal!
+            return card.standardLegal && card.expandedLegal
         }
         if legality == "Expanded" {
-            return expandedLegal! && !standardLegal!
+            return card.expandedLegal && !card.standardLegal
         }
         if legality == "Unlimited" {
-            return !expandedLegal! && !standardLegal!
+            return !card.expandedLegal && !card.standardLegal
         }
-        
-        print("something has gone horribly wrong")
+
         return false
     }
     

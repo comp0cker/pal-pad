@@ -14,6 +14,9 @@ class Card: ObservableObject {
     @Published var count: Int
     @Published var id: String
     
+    @Published var standardLegal: Bool = true
+    @Published var expandedLegal: Bool = true
+    
     init(content: [String: Any]) {
         self.content = content
         

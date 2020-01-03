@@ -8,3 +8,4 @@
 
 let urlBase = "https://api.pokemontcg.io/v1/"
 let imageUrlBase = "https://images.pokemontcg.io/"
+let bannedCardsUrl = "https://www.pokemon.com/us/pokemon-tcg-banned-card-list/"
