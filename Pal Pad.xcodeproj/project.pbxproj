@@ -29,6 +29,8 @@
 		B3B4D3B723B511D9005840B9 /* Sets.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3B623B511D9005840B9 /* Sets.swift */; };
 		B3B4D3B923B51FFD005840B9 /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3B823B51FFD005840B9 /* Images.swift */; };
 		B3B4D3BB23B5727D005840B9 /* UX.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B4D3BA23B5727D005840B9 /* UX.swift */; };
+		B3C3E3D123C02DBD00ECAFBB /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C3E3D023C02DBD00ECAFBB /* HelpView.swift */; };
+		B3C3E3D323C1915A00ECAFBB /* PtcgoImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C3E3D223C1915A00ECAFBB /* PtcgoImportView.swift */; };
 		D568C5AC8085686863E6783A /* Pods_Pal_Pad.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F61F5FA4C6DEE107D91B9F2D /* Pods_Pal_Pad.framework */; };
 		EBA5C0525718CA4C538C0EA0 /* Pods_Pal_PadTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 510B6B79CC9321D00943F2A5 /* Pods_Pal_PadTests.framework */; };
 /* End PBXBuildFile section */
@@ -82,6 +84,8 @@
 		B3B4D3B623B511D9005840B9 /* Sets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sets.swift; sourceTree = "<group>"; };
 		B3B4D3B823B51FFD005840B9 /* Images.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Images.swift; sourceTree = "<group>"; };
 		B3B4D3BA23B5727D005840B9 /* UX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UX.swift; sourceTree = "<group>"; };
+		B3C3E3D023C02DBD00ECAFBB /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
+		B3C3E3D223C1915A00ECAFBB /* PtcgoImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PtcgoImportView.swift; sourceTree = "<group>"; };
 		C29815343AA27470BAA95F78 /* Pods-Pal Pad-Pal PadUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pal Pad-Pal PadUITests.debug.xcconfig"; path = "Target Support Files/Pods-Pal Pad-Pal PadUITests/Pods-Pal Pad-Pal PadUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		D0178C6B61842A7DB291089B /* Pods-Pal Pad.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pal Pad.debug.xcconfig"; path = "Target Support Files/Pods-Pal Pad/Pods-Pal Pad.debug.xcconfig"; sourceTree = "<group>"; };
 		F196E8025F1B432FEB837515 /* Pods-Pal PadTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pal PadTests.release.xcconfig"; path = "Target Support Files/Pods-Pal PadTests/Pods-Pal PadTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -161,6 +165,8 @@
 				B30BF54323AD5CA5008F7E60 /* SceneDelegate.swift */,
 				B30BF54523AD5CA5008F7E60 /* ContentView.swift */,
 				B30BF57123AD9F3F008F7E60 /* SearchView.swift */,
+				B3C3E3D023C02DBD00ECAFBB /* HelpView.swift */,
+				B3C3E3D223C1915A00ECAFBB /* PtcgoImportView.swift */,
 				B33EFA1823B65F0E001E0565 /* ExportImageView.swift */,
 				B30BF57B23B1BA3F008F7E60 /* SaveDeck.swift */,
 				B3B4D3A923B44D39005840B9 /* ImportLimitlessView.swift */,
@@ -478,6 +484,7 @@
 				B3B4D3A623B3E975005840B9 /* Deck.swift in Sources */,
 				B30BF57A23B03DBC008F7E60 /* DeckView.swift in Sources */,
 				B3B4D3B723B511D9005840B9 /* Sets.swift in Sources */,
+				B3C3E3D323C1915A00ECAFBB /* PtcgoImportView.swift in Sources */,
 				B3B4D3B923B51FFD005840B9 /* Images.swift in Sources */,
 				B30BF57223AD9F3F008F7E60 /* SearchView.swift in Sources */,
 				B30BF54223AD5CA5008F7E60 /* AppDelegate.swift in Sources */,
@@ -488,6 +495,7 @@
 				B30BF57C23B1BA3F008F7E60 /* SaveDeck.swift in Sources */,
 				B3B4D3AA23B44D39005840B9 /* ImportLimitlessView.swift in Sources */,
 				B33EFA1D23B7B628001E0565 /* Legality.swift in Sources */,
+				B3C3E3D123C02DBD00ECAFBB /* HelpView.swift in Sources */,
 				B33EFA1923B65F0E001E0565 /* ExportImageView.swift in Sources */,
 				B3B4D3A823B3E99F005840B9 /* Card.swift in Sources */,
 			);
@@ -656,7 +664,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"vmax/Preview Content\"";
 				DEVELOPMENT_TEAM = MR26CCZ496;
 				ENABLE_PREVIEWS = YES;
@@ -665,7 +673,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2;
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jaredgrimes.palpad;
 				PRODUCT_NAME = "Pal Pad";
 				SWIFT_VERSION = 5.0;
@@ -679,7 +687,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"vmax/Preview Content\"";
 				DEVELOPMENT_TEAM = MR26CCZ496;
 				ENABLE_PREVIEWS = YES;
@@ -688,7 +696,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2;
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jaredgrimes.palpad;
 				PRODUCT_NAME = "Pal Pad";
 				SWIFT_VERSION = 5.0;

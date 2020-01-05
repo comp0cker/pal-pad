@@ -9,3 +9,25 @@
 let urlBase = "https://api.pokemontcg.io/v1/"
 let imageUrlBase = "https://images.pokemontcg.io/"
 let bannedCardsUrl = "https://www.pokemon.com/us/pokemon-tcg-banned-card-list/"
+
+func fixUpNameQuery(query: String) -> String {
+    if query.lowercased() == "n" {
+        return "\"N\""
+    }
+    
+    if query.lowercased().contains(" ex") {
+        return query.lowercased().replacingOccurrences(of: " ex", with: "-ex")
+    }
+    if query.lowercased().contains(" gx") {
+        return query.replacingOccurrences(of: " gx", with: "-gx")
+    }
+    
+    if query.lowercased().contains(" prism star") {
+        return query.lowercased().replacingOccurrences(of: " prism star", with: " ◇")
+    }
+    if query.lowercased().contains(" prism") {
+        return query.lowercased().replacingOccurrences(of: " prism", with: " ◇")
+    }
+    
+    return query
+}

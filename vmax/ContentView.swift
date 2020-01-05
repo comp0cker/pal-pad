@@ -8,6 +8,26 @@
 
 import SwiftUI
 import Combine
+import GoogleMobileAds
+import UIKit
+
+final private class BannerVC: UIViewControllerRepresentable  {
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let view = GADBannerView(adSize: kGADAdSizeBanner)
+
+        let viewController = UIViewController()
+        view.adUnitID = bannerID
+        view.rootViewController = viewController
+        viewController.view.addSubview(view)
+        viewController.view.frame = CGRect(origin: .zero, size: kGADAdSizeBanner.size)
+        view.load(GADRequest())
+
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
 
 struct HomeView {
     var name: String
@@ -33,6 +53,9 @@ struct ContentView: View {
     
     @State var showImportDeck: Bool = false
     @State var showLimitlessView: Bool = false
+    @State var showPtcgoView: Bool = false
+    @State var showHelpView: Bool = false
+    
     @State var changedSomething: Bool = false
 
     func deckOn() {
@@ -77,6 +100,10 @@ struct ContentView: View {
         showLimitlessView = true
     }
     
+    func importPtcgo() {
+        showPtcgoView = true
+    }
+    
     func getLegality(deck: String) -> String {
         let data = Data(deck.utf8)
         do {
@@ -103,6 +130,9 @@ struct ContentView: View {
         }
         
         let realDecks = legalityDecks.filter{$0.count > 0}
+        
+        // hides those DISGUSTING LINES
+        UITableView.appearance().separatorColor = .clear
 
         return VStack {
             NavigationView {
@@ -150,6 +180,9 @@ struct ContentView: View {
                         }) {
                             Text("➕ New Deck")
                         }
+                        .sheet(isPresented: $showLimitlessView) {
+                            ImportLimitlessView(deckViewOn: self.$deckViewOn, limitlessViewOn: self.$showLimitlessView, deck: self.$deck, changedSomething: self.$changedSomething)
+                        }
                         
                         Button(action: {
                             self.showImportDeck = true
@@ -157,12 +190,21 @@ struct ContentView: View {
                             Text("⬇️ Import Deck")
                         }.actionSheet(isPresented: self.$showImportDeck) {
                         ActionSheet(title: Text("How would you like to import deck?"), message: Text("You can either import by pasting in a PTCGO style deck list, or by browsing decks on limitlesstcg.com."),
-                                    buttons: [.default(Text("PTCGO import")),
+                                    buttons: [.default(Text("PTCGO import"), action: {self.importPtcgo()}),
                                               .default(Text("Limitless import"), action: {self.importLimitless()})])
                     }
-                        .sheet(isPresented: $showLimitlessView) {
-                            ImportLimitlessView(deckViewOn: self.$deckViewOn, limitlessViewOn: self.$showLimitlessView, deck: self.$deck, changedSomething: self.$changedSomething)
+                        .sheet(isPresented: $showPtcgoView) {
+                            PtcgoImportView(deckViewOn: self.$deckViewOn, ptcgoViewOn: self.$showPtcgoView, deck: self.$deck, changedSomething: self.$changedSomething)
                         }
+                        
+                            Button(action: {
+                                self.showHelpView = true
+                            }) {
+                                Text("ℹ️ Help")
+                            }
+                            .sheet(isPresented: $showHelpView) {
+                                HelpView()
+                            }
 //                    Button(action: {
 //                        let defaults = UserDefaults.standard
 //                        defaults.set("", forKey: "decks")

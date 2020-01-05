@@ -16,6 +16,8 @@ class Card: ObservableObject {
     
     @Published var standardLegal: Bool = true
     @Published var expandedLegal: Bool = true
+    @Published var standardBanned: Bool = false
+    @Published var expandedBanned: Bool = false
     
     init(content: [String: Any]) {
         self.content = content
@@ -41,6 +43,10 @@ class Card: ObservableObject {
     
     func getSupertype() -> String {
         return content["supertype"] as! String
+    }
+    
+    func getSubtype() -> String {
+        return content["subtype"] as! String
     }
     
     func ifBasicEnergy() -> Bool {

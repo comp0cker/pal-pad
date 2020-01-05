@@ -23,9 +23,14 @@ struct DeckView: View {
     @State private var newPosition: CGSize = .zero
     
     @State private var tooManyCardsAlert = false
+    @State private var showBannedAlert = false
+    @State private var showNotEnoughCards = false
     
     @Binding var changedSomething: Bool
     @State var cardsLoaded: Bool = false
+    
+    @State var editingMode: Bool = false
+    @State var animationAmount: CGFloat = 1
     
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
@@ -40,7 +45,56 @@ struct DeckView: View {
         self.deck.objectWillChange.send()
         self.deck.changeCardCount(index: index, incr: incr)
         
+        // because if we remove all the cards then editing mode
+        // should be off so our users don't get anxious about
+        // not being able to turn off that mode :]
+        if self.deck.cardCount() == 0 {
+            self.editingMode = false
+        }
+        
         self.changedSomething = true
+    }
+    
+    func cardBanned(index: Int) -> Bool {
+        return (self.deck.cards[index].standardBanned && self.deck.legality() != "Expanded") || (self.deck.cards[index].expandedBanned && self.deck.legality() != "Standard")
+    }
+    
+    func cardCountView(index: Int) -> some View {
+        return ZStack {
+            Circle()
+                .frame(width: 40, height: 40)
+                .padding(.top, 100)
+                .overlay(
+                  Circle()
+                 .stroke(Color.black,lineWidth: 5)
+                    .padding(.top, 100)
+                ).foregroundColor(Color.white)
+            
+            if cardBanned(index: index) {
+                Button(action: {
+                    self.showBannedAlert = true
+                })
+                {
+                    Text("❗")
+                        .font(.title)
+                        .padding(.top, 100)
+                        .padding(.leading, 25)
+                }
+                .alert(isPresented: $showBannedAlert) {
+                    Alert(title: Text("Banned Card"), message: Text(self.deck.cards[index].content["name"] as! String + " is banned. Please delete this card for your deck to be Standard or Expanded legal."), primaryButton: .destructive(Text("Delete")) {
+                        self.changedSomething = true
+                        self.deck.removeCard(index: index)
+                        },
+                        secondaryButton: .default(Text("I'll pass")))
+                }
+                
+            }
+            
+            Text(String(self.deck.cardCount(index: index)))
+                .foregroundColor(Color.black)
+                .fontWeight(.bold)
+                .padding(.top, 100)
+        }
     }
     
     func cardView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
@@ -51,24 +105,19 @@ struct DeckView: View {
 //        print(selectedCard.content["name"] as! String)
         let index = self.deck.cards.firstIndex(where: {$0.id == selectedCard.id})!
         
+        if editingMode {
         return AnyView(
             ZStack {
                 Image(uiImage: cards[rowNumber * 3 + columnNumber].image)
-            Circle()
-                .frame(width: 40, height: 40)
-                .padding(.top, 100)
-                .overlay(
-                  Circle()
-                 .stroke(Color.black,lineWidth: 5)
-                    .padding(.top, 100)
-                ).foregroundColor(Color.white)
-            
-            Text(String(self.deck.cardCount(index: index)))
-                .foregroundColor(Color.black)
-                .fontWeight(.bold)
-                .padding(.top, 100)
+                self.cardCountView(index: index)
                 }
-                .gesture(DragGesture()
+                 .onLongPressGesture() {
+                    self.editingMode = !self.editingMode
+                    // bzzt
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                 }
+                .simultaneousGesture(DragGesture()
                 .onChanged { value in
                     if self.firstPosition == .zero {
                         self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
@@ -110,6 +159,23 @@ struct DeckView: View {
             Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
         }
         )
+        }
+        return AnyView(
+            ZStack {
+                Image(uiImage: cards[rowNumber * 3 + columnNumber].image)
+                self.cardCountView(index: index)
+                }
+
+            .onTapGesture {
+                
+            }
+            .onLongPressGesture() {
+                // bzzt
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+               self.editingMode = !self.editingMode
+            }
+        )
     }
     
     func save() -> some View {
@@ -147,7 +213,7 @@ struct DeckView: View {
             self.editDeck()
         })
         {
-            Text("Edit")
+            Text("Rename")
         })
     }
     
@@ -167,6 +233,19 @@ struct DeckView: View {
             self.showDeleteDeck = true
         }) {
             Text("Delete")
+                .foregroundColor(Color.red)
+        }.actionSheet(isPresented: self.$showDeleteDeck) {
+            ActionSheet(title: Text("Are you sure you want to delete " + self.deck.name + "?"), message: Text("Deleting will remove all data."),
+                        buttons: [.default(Text("Cancel")),
+                                  .destructive(Text("Delete"), action: self.deleteDeck)])
+        }
+    }
+    
+    func editMode() -> some View {
+        return Button(action: {
+            self.showDeleteDeck = true
+        }) {
+            Text("Edit Card")
                 .foregroundColor(Color.red)
         }.actionSheet(isPresented: self.$showDeleteDeck) {
             ActionSheet(title: Text("Are you sure you want to delete " + self.deck.name + "?"), message: Text("Deleting will remove all data."),
@@ -202,6 +281,18 @@ struct DeckView: View {
         }
     }
     
+    func cardsView(cards: [Card]) -> some View {
+        return AnyView (
+            ForEach (0 ..< self.rowCount(cards: cards), id: \.self) { rowNumber in
+            HStack {
+                ForEach (0 ..< 3, id: \.self) { columnNumber in
+                    self.cardView(rowNumber: rowNumber, columnNumber: columnNumber, cards: cards)
+                }
+            }
+        }
+        )
+    }
+    
     var body: some View {
         let supertypes = ["Pokémon", "Trainer", "Energy"]
         var supertypeCards: [[Card]] = []
@@ -219,29 +310,69 @@ struct DeckView: View {
             ctr += 1
         }
         
-        var subtitle = String(self.deck.cardCount()) + " cards"
-        if self.deck.cardCount() != 60 {
-            subtitle += " ⚠️"
-        }
-        else {
-            subtitle += " ✔️"
+        let trainerSubtypes = ["Supporter", "Item", "Stadium"]
+        var trainerSubtypeCards: [[Card]] = []
+        var trainerSubtypeCounts: [Int] = [0, 0, 0]
+        
+        ctr = 0
+        if supertypeCounts[1] > 0 {
+            for trainerType in trainerSubtypes {
+                let filteredCards = supertypeCards[1].filter { $0.getSubtype() == trainerType }
+                trainerSubtypeCards.append(filteredCards)
+                
+                for card in filteredCards {
+                    trainerSubtypeCounts[ctr] += card.count
+                }
+                
+                ctr += 1
+            }
+            
+            // now rearrange the trainers
+            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2]
         }
         
-        let subtitleView = Text(subtitle)
+        var subtitle = String(self.deck.cardCount()) + " cards"
+        
+        let subtitleView = HStack {
+            Text(subtitle)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.gray)
+            if self.deck.cardCount() != 60 {
+                Button(action: {
+                    self.showNotEnoughCards = true
+                }) {
+                    Text("⚠️")
+                }
+                .alert(isPresented: $showNotEnoughCards) {
+                    Alert(title: Text("Illegal Deck"), message: Text("Your deck must have exactly 60 cards to be legal."), dismissButton: .default(Text("Got it!")))
+                }
+            }
+            else {
+                Text("✔️")
+            }
+
+        }
+        
+        let legality = deck.standardLegal ? "Standard" : deck.expandedLegal ? "Expanded" : "Unlimited"
+        
+        let formatView = Text(legality)
         .font(.title)
         .fontWeight(.bold)
         .foregroundColor(.gray)
         
-        let legality = deck.standardLegal ? "Standard" : deck.expandedLegal ? "Expanded" : "Unlimited"
-        
-        let formatView = Text(legality + " legal")
+        let editingModeText = Text("Editing...")
         .font(.title)
         .fontWeight(.bold)
         .foregroundColor(.gray)
         
         return VStack(alignment: .leading) {
+            HStack {
                 subtitleView
                 formatView
+            }
+
+            self.editingMode ? editingModeText : nil
                 HStack {
                     self.save()
                     self.edit()
@@ -261,24 +392,19 @@ struct DeckView: View {
                 }
                 ScrollView {
                     VStack(alignment: .leading) {
-                        HStack {
-                            Spacer()
-                        }
                         ForEach (0 ..< supertypes.count) { supertype in
                             Text(supertypes[supertype] + " (" + String(supertypeCounts[supertype]) + ")")
                                 .font(.title)
                                 .fontWeight(.bold)
-                            ForEach (0 ..< self.rowCount(cards: supertypeCards[supertype]), id: \.self) { rowNumber in
-                                HStack {
-                                    ForEach (0 ..< 3, id: \.self) { columnNumber in
-                                        self.cardView(rowNumber: rowNumber, columnNumber: columnNumber, cards: supertypeCards[supertype])
-                                    }
-                                }
-                            }
+                            self.cardsView(cards: supertypeCards[supertype])
+                        }
+                        HStack {
+                            Spacer()
                         }
                     }
                 }
+            
         }.navigationBarTitle(self.title)
-            .padding()
+            .padding(.leading)
         }
     }

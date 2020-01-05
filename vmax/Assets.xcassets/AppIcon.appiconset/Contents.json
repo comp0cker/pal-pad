@@ -3,109 +3,109 @@
     {
       "size" : "20x20",
       "idiom" : "iphone",
-      "filename" : "palpad-5.jpg",
+      "filename" : "Icon-20@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "20x20",
       "idiom" : "iphone",
-      "filename" : "palpad-6.jpg",
+      "filename" : "Icon-20@3x.png",
       "scale" : "3x"
     },
     {
       "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "palpad-7.jpg",
+      "filename" : "Icon-29@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "palpad-8.jpg",
+      "filename" : "Icon-29@3x.png",
       "scale" : "3x"
     },
     {
       "size" : "40x40",
       "idiom" : "iphone",
-      "filename" : "palpad-9.jpg",
+      "filename" : "Icon-40@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "40x40",
       "idiom" : "iphone",
-      "filename" : "palpad-10.jpg",
+      "filename" : "Icon-40@3x.png",
       "scale" : "3x"
     },
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "120-1.jpg",
+      "filename" : "Icon-60@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "180-1.jpg",
+      "filename" : "Icon-60@3x.png",
       "scale" : "3x"
     },
     {
       "size" : "20x20",
       "idiom" : "ipad",
-      "filename" : "palpad-4.jpg",
+      "filename" : "Icon-20.png",
       "scale" : "1x"
     },
     {
       "size" : "20x20",
       "idiom" : "ipad",
-      "filename" : "palpad-3.jpg",
+      "filename" : "Icon-20@2x-1.png",
       "scale" : "2x"
     },
     {
       "size" : "29x29",
       "idiom" : "ipad",
-      "filename" : "palpad-1.jpg",
+      "filename" : "Icon-29.png",
       "scale" : "1x"
     },
     {
       "size" : "29x29",
       "idiom" : "ipad",
-      "filename" : "palpad-2.jpg",
+      "filename" : "Icon-29@2x-1.png",
       "scale" : "2x"
     },
     {
       "size" : "40x40",
       "idiom" : "ipad",
-      "filename" : "palpad-11.jpg",
+      "filename" : "Icon-40.png",
       "scale" : "1x"
     },
     {
       "size" : "40x40",
       "idiom" : "ipad",
-      "filename" : "palpad-12.jpg",
+      "filename" : "Icon-40@2x-1.png",
       "scale" : "2x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "palpad-13.jpg",
+      "filename" : "Icon-76.png",
       "scale" : "1x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "152.jpg",
+      "filename" : "Icon-76@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "83.5x83.5",
       "idiom" : "ipad",
-      "filename" : "167.jpg",
+      "filename" : "Icon-83.5@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "1024x1024",
       "idiom" : "ios-marketing",
-      "filename" : "1024.jpg",
+      "filename" : "Icon-1024.png",
       "scale" : "1x"
     }
   ],

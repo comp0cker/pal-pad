@@ -34,6 +34,8 @@ struct SearchView: View {
     @State var searchResultsLoaded = false
     @Binding var changedSomething: Bool
     
+    @State var onlyShowLegalities: Bool = true
+    
     func addCardToSearch(card: [String: Any]) {
         // DUPLICATE CODE
         let c = Card(content: card)
@@ -50,7 +52,10 @@ struct SearchView: View {
     // this is where we actually search cards, called by searchCards()
     func actuallySearchCards() {
         self.searchResults.clear()
-        let searchQueryUrl = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        let fixedQuery = fixUpNameQuery(query: self.searchQuery)
+        
+        
+        let searchQueryUrl = fixedQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         let url = URL(string: urlBase + "cards?name=" + searchQueryUrl)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error == nil {
@@ -121,14 +126,16 @@ struct SearchView: View {
     }
     
     func searchResultView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
-        return Button(action: {self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber])}) {
+        return Button(action: {
+            self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber])})
+        {
             rowNumber * 3 + columnNumber >= cards.count ? Image(systemName: "card") : Image(uiImage: cards[rowNumber * 3 + columnNumber].image).renderingMode(.original)
         }
     }
     
     func ifCardLegal(card: Card, legality: String) -> Bool {
         if legality == "Standard" {
-            return card.standardLegal && card.expandedLegal
+            return card.standardLegal
         }
         if legality == "Expanded" {
             return card.expandedLegal && !card.standardLegal
@@ -145,8 +152,21 @@ struct SearchView: View {
     }
 
     var body: some View {
-        let legalities = ["Standard", "Expanded", "Unlimited"]
+        var legalities = ["Standard", "Expanded", "Unlimited"]
         var legalCards: [[Card]] = []
+        
+        let newDeck: Deck = deck
+
+        // we add newDeck.cardCount() > 0 because we want to show all
+        // cards on the initial search
+        if onlyShowLegalities == true && newDeck.cards.count > 0 {
+            if self.deck.standardLegal {
+                legalities = ["Standard"]
+            }
+            else if self.deck.expandedLegal {
+                legalities = ["Standard", "Expanded"]
+            }
+        }
         
         for legality in legalities {
             let filteredCards = self.searchResults.cards.filter { self.ifCardLegal(card: $0, legality: legality) }
@@ -160,6 +180,10 @@ struct SearchView: View {
                     Button(action: searchCards) {
                         Text("Search")
                     }
+                }.padding()
+            
+                Toggle(isOn: self.$onlyShowLegalities) {
+                    Text("Only show legal cards for your deck")
                 }.padding()
                 
                 !searchResultsLoaded ? nil : ScrollView {

@@ -70,7 +70,20 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: 
     
     let supertypes = ["Pokémon", "Trainer", "Energy"]
     for supertype in supertypes {
-        let filteredCards = deck.cards.filter { $0.getSupertype() == supertype }
+        var filteredCards = deck.cards.filter { $0.getSupertype() == supertype }
+        
+        if supertype == "Trainer" && filteredCards.count > 0 {
+            let trainerSubtypes = ["Supporter", "Item", "Stadium"]
+            var trainerSubtypeCards: [[Card]] = []
+
+            for trainerType in trainerSubtypes {
+                let filteredCards = filteredCards.filter { $0.getSubtype() == trainerType }
+                trainerSubtypeCards.append(filteredCards)
+            }
+            
+            // now rearrange the trainers
+            filteredCards = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2]
+        }
         
         for card in filteredCards {
             var expectedWidth = imageWidth
@@ -97,8 +110,31 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: 
             else {
                 if !testing {
                     card.image.draw(in: CGRect(x: currentX, y: currentY, width: imageWidth, height: imageHeight))
+                    
+                    let countX = currentX - stackedOffset + 5 + imageWidth / 2
+                    let countY = currentY + imageHeight * 2 / 3
+                    
+                    // draw the card count
+                    let circleSize = 75
+                    
+                    let context = UIGraphicsGetCurrentContext()!
+                    context.setLineWidth(10.0)
+                    context.setStrokeColor(UIColor.black.cgColor)
+                    context.setFillColor(UIColor.white.cgColor)
+                    context.addEllipse(in: CGRect(x: countX - 22, y: countY - 5, width: circleSize, height: circleSize))
+                    context.drawPath(using: .fillStroke) // or .fillStroke if need filling
+                    
+                    let fontSize: Int = 52
+                    let attrs: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.boldSystemFont(ofSize: CGFloat(fontSize)),
+                    ]
+
+                    let string = String(card.count)
+                    let attributedString = NSAttributedString(string: string, attributes: attrs)
+                    
+                    attributedString.draw(with: CGRect(x: countX, y: countY, width: width, height: fontSize), options: .usesLineFragmentOrigin, context: nil)
                 }
-                currentX += imageWidth
+                currentX += imageWidth + stackedOffset
             }
         }
         if (newTypeLines) {
@@ -107,10 +143,30 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: 
         }
     }
     
+    let image = UIImage(named: "AppIcon")!
+    let appIconDimension = portraitMode ? width / 10 : height / 10
+    let appNamePadding = portraitMode ? width / 40 : height / 40
+    let appTextWidth = portraitMode ? width / 4 : height / 4
+    
+    let fontSize: Int = 76
+
+    let attrs: [NSAttributedString.Key: Any] = [
+        .font: UIFont.boldSystemFont(ofSize: CGFloat(fontSize)),
+    ]
+
+    let string = "Pal Pad"
+    let attributedString = NSAttributedString(string: string, attributes: attrs)
+    
+    if !testing {
+        image.draw(in: CGRect(x: width - appTextWidth - appNamePadding - appIconDimension, y: height - appIconDimension - appNamePadding, width: appIconDimension, height: appIconDimension))
+        attributedString.draw(with: CGRect(x: width - appTextWidth / 2 - appNamePadding - appIconDimension, y: height - appIconDimension, width: width, height: fontSize), options: .usesLineFragmentOrigin, context: nil)
+    }
+    
+    currentY += appIconDimension
+    
     if !newTypeLines {
         currentY += imageHeight + Ypadding
     }
-
 
     if currentY < height {
         return testingParams(imageFactor: imageFactor, additionalYpadding: (height - currentY) / 2)

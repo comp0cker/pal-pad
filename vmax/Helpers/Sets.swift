@@ -23,8 +23,14 @@ func setConvert(ptcgoCode: String) -> String {
     let target = sets.filter { set in
         let grabbedPtcgoCode = set["ptcgoCode"] as? String
         return code == grabbedPtcgoCode
-    }[0]
-    return (target["code"] as? String)!
+    }
+    
+    // if it's an invalid set, return empty string
+    if target.count == 0 {
+        return ""
+    }
+    
+    return (target[0]["code"] as? String)!
 }
 
 func setConvertToPtcgo(regularCode: String) -> String {

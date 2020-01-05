@@ -38,20 +38,14 @@ struct SaveDeck: View {
 
     var body: some View {
         return VStack {
-            Text("Please enter a deck name")
-            TextField("Deck name", text: $deckName)
+            Text("Deck Name")
+                .font(.title)
+                .fontWeight(.bold)
+            TextField("ex. Busted Broken Chandelure", text: $deckName)
             Divider()
-                HStack {
-                    Button(action: storeDeck) {
-                        Text("Done")
-                    }
-                    Button(action: {
-                    UIApplication.shared.windows[0].rootViewController?.dismiss(animated: true, completion: {})
-                    }) {
-                        Text("Cancel")
-                    }
-                    Spacer()
-                }
+            Button(action: storeDeck) {
+                Text("Rename")
+            }.padding()
         }.padding()
     }
 }

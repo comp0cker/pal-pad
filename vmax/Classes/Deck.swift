@@ -21,7 +21,7 @@ class Deck: ObservableObject {
     }
     
     func legality() -> String {
-        if standardLegal && expandedLegal {
+        if standardLegal {
             return "Standard"
         }
         if expandedLegal {
@@ -112,12 +112,10 @@ class Deck: ObservableObject {
                                         // print("EXPANDED CARD")
                                     }
                                     else {
-                                        self.standardLegal = false
                                         self.expandedLegal = false
+                                        card.expandedLegal = false
                                         
                                         card.standardLegal = false
-                                        card.expandedLegal = false
-                                        print("NOT AT ALL LEGAL")
                                     }
                                 }
                             }
@@ -151,28 +149,43 @@ class Deck: ObservableObject {
             return card.content["setCode"] as? String == grabbedCode
         }[0]
         
+        // first, we check if the set is legal
         let standardLegal: Bool = targetSet["standardLegal"] as! Bool
         let expandedLegal: Bool = targetSet["expandedLegal"] as! Bool
         
+        // if the card is banned in standard, the deck is not standard legal,
+        // and the card itself is not standard legal
         if ifBanned(card: card.content, format: "Standard") {
             self.standardLegal = false
             card.standardLegal = false
-        }
-        if ifBanned(card: card.content, format: "Expanded") {
-            print("banned")
-            self.expandedLegal = false
-            card.expandedLegal = false
+            card.standardBanned = true
         }
         
+        // if the card is banned in expanded, the deck is not expanded legal,
+        // and the card itself is not expanded legal
+        if ifBanned(card: card.content, format: "Expanded") {
+            self.expandedLegal = false
+            card.expandedLegal = false
+            card.expandedBanned = true
+        }
+        
+        
+        // if it's a standard promo but not in the promo range legal, it's not
+        // legal for standard
         if standardLegal && !ifCardPromoLegal(card: card.content) {
             self.standardLegal = false
             card.standardLegal = false
         }
         
+        // if it's not expanded legal, we check to see if there's a reprint legal
+        // in expanded. if so, set the legaity back to true.
         if !expandedLegal {
             self.checkReprintLegality(card: card, standard: false)
         }
-        else if !standardLegal {
+        
+        // if it's not standard legal, we check to see if there's a reprint legal
+        // in standard. if so, set the legaity back to true.
+        if !standardLegal {
             self.checkReprintLegality(card: card, standard: true)
         }
     }
@@ -188,6 +201,7 @@ class Deck: ObservableObject {
                 updateLegality(card: card)
             }
             cards.append(card)
+            print(card.content["name"] as! String + " appended")
         }
     }
     
@@ -204,6 +218,10 @@ class Deck: ObservableObject {
             updateLegality(card: card)
             cards.append(card)
         }
+    }
+    
+    func removeCard(index: Int) {
+        cards.remove(at: index)
     }
     
     func changeCardCount(index: Int, incr: Int) {
@@ -274,6 +292,27 @@ class Deck: ObservableObject {
             }
             
             ctr += 1
+        }
+        
+        let trainerSubtypes = ["Supporter", "Item", "Stadium"]
+        var trainerSubtypeCards: [[Card]] = []
+        var trainerSubtypeCounts: [Int] = [0, 0, 0]
+        
+        ctr = 0
+        if supertypeCounts[1] > 0 {
+            for trainerType in trainerSubtypes {
+                let filteredCards = supertypeCards[1].filter { $0.getSubtype() == trainerType }
+                trainerSubtypeCards.append(filteredCards)
+                
+                for card in filteredCards {
+                    trainerSubtypeCounts[ctr] += card.count
+                }
+                
+                ctr += 1
+            }
+            
+            // now rearrange the trainers
+            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2]
         }
         
         ctr = 0

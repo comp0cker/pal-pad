@@ -30,15 +30,17 @@ struct ExportImageView: View {
             }.padding()
             
             Toggle(isOn: self.$stacked) {
-                Text("Visible stacking of cards in image as opposed to a number on each card")
+                Text("Visible stacking of cards in image")
+                .lineLimit(nil)
             }.padding()
             
             Toggle(isOn: self.$newTypeLines) {
-                Text("New lines for Pokemon, Trainer, Energy types (usually makes cards smaller)")
+                Text("New lines for Pokemon, Trainer, Energy")
+                .lineLimit(nil)
             }.padding()
             
             Toggle(isOn: self.$showTitle) {
-                Text("Shows title at the top (also makes cards smaller)")
+                Text("Show title at the top")
             }.padding()
             
             Button(action: {
@@ -60,14 +62,15 @@ struct ExportImageView: View {
             Text("PTCGO Output")
                 .font(.title)
                 .fontWeight(.bold)
+                .padding()
+            Text("Generates a text list of your deck for import in PTCGO. Copies list to clipboard.")
+                .padding()
             Button(action: {
                 let pasteboard = UIPasteboard.general
                 pasteboard.string = self.deck.ptcgoOutput()
                 self.showDeckCopied = true
             }) {
-                ZStack {
-                    Text("Generate")
-                }
+                Text("Generate")
             }.alert(isPresented: $showDeckCopied) {
                 Alert(title: Text("Deck list copied!"), message: Text("Paste anywhere for use."), dismissButton: .default(Text("Got it!")))
             }
