@@ -19,41 +19,60 @@ struct ExportImageView: View {
     @ObservedObject var deck: Deck
     @Binding var title: String
     
+    @Binding var leaksMode: Bool
+    @Binding var showSettingsView: Bool
+    @Binding var showDeckView: Bool
+    
     var body: some View {
         VStack {
-            Text("Image Output")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Toggle(isOn: self.$portraitMode) {
-                Text("Portrait mode (up and down ways image)")
-            }.padding()
-            
-            Toggle(isOn: self.$stacked) {
-                Text("Visible stacking of cards in image")
-                .lineLimit(nil)
-            }.padding()
-            
-            Toggle(isOn: self.$newTypeLines) {
-                Text("New lines for Pokemon, Trainer, Energy")
-                .lineLimit(nil)
-            }.padding()
-            
-            Toggle(isOn: self.$showTitle) {
-                Text("Show title at the top")
-            }.padding()
-            
-            Button(action: {
-                self.showExportImageView = false
-                self.deck.name = self.title
+            Group {
+                Text("Image Output")
+                    .font(.title)
+                    .fontWeight(.bold)
                 
-                let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines, showTitle: self.showTitle)
+                Toggle(isOn: self.$portraitMode) {
+                    Text("Portrait mode (up and down ways image)")
+                }.padding()
                 
-                let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
-                UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
-            }) {
-                ZStack {
-                    Text("Generate")
+                Toggle(isOn: self.$stacked) {
+                    Text("Visible stacking of cards in image")
+                    .lineLimit(nil)
+                }.padding()
+                
+                Toggle(isOn: self.$newTypeLines) {
+                    Text("New lines for Pokemon, Trainer, Energy")
+                    .lineLimit(nil)
+                }.padding()
+                
+                Toggle(isOn: self.$showTitle) {
+                    Text("Show title at the top")
+                }.padding()
+                
+                Button(action: {
+                    self.showExportImageView = false
+                    self.deck.name = self.title
+                    
+                    let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines, showTitle: self.showTitle)
+                    
+                    let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
+                    UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
+                }) {
+                    ZStack {
+                        Text("Generate")
+                    }
+                }
+            }.disabled(!leaksMode)
+            
+            if !leaksMode {
+                Button(action: {
+                    self.showExportImageView = false
+                    self.showDeckView = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.showSettingsView = true
+                    }
+                })
+                {
+                    Text("Want this mode enabled? Buy the Leaks Package here.")
                 }
             }
             
@@ -64,6 +83,7 @@ struct ExportImageView: View {
                 .fontWeight(.bold)
                 .padding()
             Text("Generates a text list of your deck for import in PTCGO. Copies list to clipboard.")
+                .fixedSize(horizontal: false, vertical: true)
                 .padding()
             Button(action: {
                 let pasteboard = UIPasteboard.general

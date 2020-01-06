@@ -12,6 +12,7 @@ struct HelpView: View {
     var body: some View {
         ScrollView {
             Group {
+                Spacer() 
                 Text("Welcome to Pal Pad!")
                     .font(.title)
                     .fontWeight(.bold)

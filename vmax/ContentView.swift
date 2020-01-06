@@ -11,16 +11,22 @@ import Combine
 import GoogleMobileAds
 import UIKit
 
-final private class BannerVC: UIViewControllerRepresentable  {
+let testAppUnitID = "ca-app-pub-3940256099942544/2934735716"
+let prodAppUnitID = "ca-app-pub-3066736963130742/6817716645"
+
+// CHANGE THIS WHEN YOU HIT PROD
+let appUnitID = prod ? prodAppUnitID : testAppUnitID
+
+final private class BigAdBanner: UIViewControllerRepresentable  {
 
     func makeUIViewController(context: Context) -> UIViewController {
-        let view = GADBannerView(adSize: kGADAdSizeBanner)
+        let view = GADBannerView(adSize: kGADAdSizeLargeBanner)
 
         let viewController = UIViewController()
-        view.adUnitID = bannerID
+        view.adUnitID = appUnitID
         view.rootViewController = viewController
         viewController.view.addSubview(view)
-        viewController.view.frame = CGRect(origin: .zero, size: kGADAdSizeBanner.size)
+        viewController.view.frame = CGRect(origin: .zero, size: kGADAdSizeLargeBanner.size)
         view.load(GADRequest())
 
         return viewController
@@ -55,8 +61,12 @@ struct ContentView: View {
     @State var showLimitlessView: Bool = false
     @State var showPtcgoView: Bool = false
     @State var showHelpView: Bool = false
+    @State var showSettingsView: Bool = false
     
     @State var changedSomething: Bool = false
+    
+    @State var showAds: Bool = !(UserDefaults.standard.bool(forKey: "adsRemoved") || !prod)
+    @State var leaksMode: Bool = UserDefaults.standard.bool(forKey: "leaksMode") || !prod
 
     func deckOn() {
         deckViewOn = true
@@ -138,7 +148,7 @@ struct ContentView: View {
             NavigationView {
                 VStack(alignment: .leading) {
                     List {
-                        NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn, changedSomething: $changedSomething), isActive: $deckViewOn) {
+                        NavigationLink (destination: DeckView(deck: deck, title: deck.name, savedDecks: savedDecks, deckViewOn: $deckViewOn, changedSomething: $changedSomething, showAds: $showAds, leaksMode: $leaksMode, showSettingsView: $showSettingsView), isActive: $deckViewOn) {
                             Text("Most Recent: " + deck.name)
                         }
                         ForEach (0 ..< realDecks.count, id: \.self) { legalityPos in
@@ -171,7 +181,7 @@ struct ContentView: View {
                                     }
                                 }
                             }
-
+                            
                         }
 
                         Button(action: {
@@ -205,13 +215,13 @@ struct ContentView: View {
                             .sheet(isPresented: $showHelpView) {
                                 HelpView()
                             }
-//                    Button(action: {
-//                        let defaults = UserDefaults.standard
-//                        defaults.set("", forKey: "decks")
-//                    }) {
-//                        Text("w i p e")
-//                    }
+                        
+                        NavigationLink (destination: SettingsView(showAds: self.$showAds, leaksMode: self.$leaksMode), isActive: self.$showSettingsView) {
+                                Text("⚙️ Settings")
+                            }
+
                 }.navigationBarTitle("Pal Pad 📔")
+                    showAds ? BigAdBanner().frame(width: UIScreen.main.bounds.width, height: 100, alignment: .center) : nil
             }
             }.navigationViewStyle(StackNavigationViewStyle())
                 .onAppear() {

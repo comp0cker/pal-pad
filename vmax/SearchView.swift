@@ -8,9 +8,28 @@
 
 import SwiftUI
 import Combine
+import GoogleMobileAds
 
 let imageWidth: CGFloat = UIScreen.main.bounds.width / 4
 let imageHeight: CGFloat = imageWidth * 343 / 246
+
+final private class BigAdBanner: UIViewControllerRepresentable  {
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let view = GADBannerView(adSize: kGADAdSizeLargeBanner)
+
+        let viewController = UIViewController()
+        view.adUnitID = appUnitID
+        view.rootViewController = viewController
+        viewController.view.addSubview(view)
+        viewController.view.frame = CGRect(origin: .zero, size: kGADAdSizeLargeBanner.size)
+        view.load(GADRequest())
+
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
 
 func json(from object:Any) -> String? {
     guard let data = try? JSONSerialization.data(withJSONObject: object, options: []) else {
@@ -35,6 +54,8 @@ struct SearchView: View {
     @Binding var changedSomething: Bool
     
     @State var onlyShowLegalities: Bool = true
+    
+    @Binding var showAds: Bool
     
     func addCardToSearch(card: [String: Any]) {
         // DUPLICATE CODE
@@ -210,6 +231,7 @@ struct SearchView: View {
                         }
                     }.padding()
                 }
+            showAds ? BigAdBanner().frame(width: UIScreen.main.bounds.width, height: 100, alignment: .center) : nil
             }
         }
     }

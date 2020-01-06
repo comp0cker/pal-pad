@@ -8,6 +8,25 @@
 
 import SwiftUI
 import Combine
+import GoogleMobileAds
+
+final private class SmallAdBanner: UIViewControllerRepresentable  {
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let view = GADBannerView(adSize: kGADAdSizeBanner)
+
+        let viewController = UIViewController()
+        view.adUnitID = appUnitID
+        view.rootViewController = viewController
+        viewController.view.addSubview(view)
+        viewController.view.frame = CGRect(origin: .zero, size: kGADAdSizeBanner.size)
+        view.load(GADRequest())
+
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
 
 struct DeckView: View {
     @State var showSaveDeck: Bool = false
@@ -31,6 +50,10 @@ struct DeckView: View {
     
     @State var editingMode: Bool = false
     @State var animationAmount: CGFloat = 1
+    
+    @Binding var showAds: Bool
+    @Binding var leaksMode: Bool
+    @Binding var showSettingsView: Bool
     
     func rowCount(cards: [Card]) -> Int {
         return (cards.count - 1) / 3 + 1
@@ -277,7 +300,7 @@ struct DeckView: View {
             Text("Export")
         })
         .sheet(isPresented: $showExportImageView) {
-            ExportImageView(showExportImageView: self.$showExportImageView, deck: self.deck, title: self.$title)
+            ExportImageView(showExportImageView: self.$showExportImageView, deck: self.deck, title: self.$title, leaksMode: self.$leaksMode, showSettingsView: self.$showSettingsView, showDeckView: self.$deckViewOn)
         }
     }
     
@@ -380,7 +403,7 @@ struct DeckView: View {
                     self.export()
                     
                     Button(action: {
-                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething))
+                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething, showAds: self.$showAds))
 
                         alertHC.preferredContentSize = CGSize(width: 300, height: 200)
                         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
@@ -403,8 +426,9 @@ struct DeckView: View {
                         }
                     }
                 }
+            showAds ? SmallAdBanner().frame(width: UIScreen.main.bounds.width, height: 50, alignment: .center) : nil
             
         }.navigationBarTitle(self.title)
-            .padding(.leading)
+            .padding(.leading, showAds ? 40 : 20)
         }
     }
