@@ -222,6 +222,7 @@ class Deck: ObservableObject {
     
     func removeCard(index: Int) {
         cards.remove(at: index)
+        recalculateLegalities()
     }
     
     func changeCardCount(index: Int, incr: Int) {
@@ -294,9 +295,9 @@ class Deck: ObservableObject {
             ctr += 1
         }
         
-        let trainerSubtypes = ["Supporter", "Item", "Stadium"]
+        let trainerSubtypes = ["Supporter", "Item", "Pokémon Tool", "Stadium"]
         var trainerSubtypeCards: [[Card]] = []
-        var trainerSubtypeCounts: [Int] = [0, 0, 0]
+        var trainerSubtypeCounts: [Int] = [0, 0, 0, 0]
         
         ctr = 0
         if supertypeCounts[1] > 0 {
@@ -312,7 +313,7 @@ class Deck: ObservableObject {
             }
             
             // now rearrange the trainers
-            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2]
+            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
         }
         
         ctr = 0
@@ -320,7 +321,7 @@ class Deck: ObservableObject {
             output += supertype + " - " + String(supertypeCounts[ctr]) + "\n"
             for card in self.cards.filter({ $0.getSupertype() == supertype }) {
                 let ptcgoSetCode: String = setConvertToPtcgo(regularCode: card.content["setCode"] as! String)
-                output += String(card.count) + " " + (card.content["name"] as! String)
+                output += "* " + String(card.count) + " " + (card.content["name"] as! String)
                 output += " " + ptcgoSetCode + " " + (card.content["number"] as! String) + "\n"
             }
             ctr += 1

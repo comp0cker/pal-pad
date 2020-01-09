@@ -12,7 +12,7 @@ import GoogleMobileAds
 import UIKit
 
 let testAppUnitID = "ca-app-pub-3940256099942544/2934735716"
-let prodAppUnitID = "ca-app-pub-3066736963130742/6817716645"
+let prodAppUnitID = "ca-app-pub-2502317044774140/8553416246"
 
 // CHANGE THIS WHEN YOU HIT PROD
 let appUnitID = prod ? prodAppUnitID : testAppUnitID
@@ -107,11 +107,17 @@ struct ContentView: View {
     }
     
     func importLimitless() {
-        showLimitlessView = true
+        showImportDeck = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.showLimitlessView = true
+        }
     }
     
     func importPtcgo() {
-        showPtcgoView = true
+        showImportDeck = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.showPtcgoView = true
+        }
     }
     
     func getLegality(deck: String) -> String {
@@ -198,11 +204,7 @@ struct ContentView: View {
                             self.showImportDeck = true
                         }) {
                             Text("⬇️ Import Deck")
-                        }.actionSheet(isPresented: self.$showImportDeck) {
-                        ActionSheet(title: Text("How would you like to import deck?"), message: Text("You can either import by pasting in a PTCGO style deck list, or by browsing decks on limitlesstcg.com."),
-                                    buttons: [.default(Text("PTCGO import"), action: {self.importPtcgo()}),
-                                              .default(Text("Limitless import"), action: {self.importLimitless()})])
-                    }
+                        }
                         .sheet(isPresented: $showPtcgoView) {
                             PtcgoImportView(deckViewOn: self.$deckViewOn, ptcgoViewOn: self.$showPtcgoView, deck: self.$deck, changedSomething: self.$changedSomething)
                         }
@@ -219,6 +221,20 @@ struct ContentView: View {
                         NavigationLink (destination: SettingsView(showAds: self.$showAds, leaksMode: self.$leaksMode), isActive: self.$showSettingsView) {
                                 Text("⚙️ Settings")
                             }
+                        .sheet(isPresented: self.$showImportDeck) {
+                                Text("Choose an import mode")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                .padding()
+                                Text("You can either import by pasting in a PTCGO style deck list, or by browsing decks compiled by Limitless TCG")
+                                .padding()
+                                Button(action: self.importPtcgo){
+                                    Text("PTCGO import")
+                                }.padding()
+                                Button(action: self.importLimitless) {
+                                    Text("Limitless import")
+                                }
+                        }
 
                 }.navigationBarTitle("Pal Pad 📔")
                     showAds ? BigAdBanner().frame(width: UIScreen.main.bounds.width, height: 100, alignment: .center) : nil

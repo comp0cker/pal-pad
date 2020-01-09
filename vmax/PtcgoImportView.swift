@@ -20,7 +20,11 @@ struct PtcgoImportView: View {
         self.deck.clear()
         
         for lineSub in self.text.split(separator: "\n") {
-            let line = String(lineSub)
+            var line = String(lineSub)
+            
+            if line.prefix(2) == "* " {
+                line = String(line.suffix(line.count - 2))
+            }
             
             // if it's not a number starting the line we don't care
             // (ie it's probably a garbage line like Trainers - 35)
@@ -36,6 +40,12 @@ struct PtcgoImportView: View {
                 continue
             }
             
+            var cardArr = lineSplit
+            cardArr.remove(at: cardArr.count - 1)
+            cardArr.remove(at: cardArr.count - 1)
+            cardArr.remove(at: 0)
+            
+            let cardName = String(cardArr.joined(separator: " "))
             let cardCount = Int(lineSplit[0])
             let ptcgoCardSet = String(lineSplit[lineSplit.count - 2])
             let cardSet = setConvert(ptcgoCode: ptcgoCardSet)
@@ -47,14 +57,15 @@ struct PtcgoImportView: View {
             
             let cardNumber = String(lineSplit[lineSplit.count - 1])
             
-            lineSplit.remove(at: lineSplit.count - 2)
-            lineSplit.remove(at: lineSplit.count - 1)
-            lineSplit.remove(at: 0)
-            
-            let cardName = lineSplit.joined(separator: " ")
-            
             var urlString = urlBase
-            urlString += "cards?setCode=" + cardSet + "&number=" + cardNumber
+            
+            if cardSet == energyPtcgoSetCode {
+                urlString += "cards?name=" + cardName + "&setCode=" + energyVersion
+                urlString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+            }
+            else {
+                urlString += "cards?setCode=" + cardSet + "&number=" + cardNumber
+            }
             print(urlString)
             
             // get card query
@@ -96,13 +107,13 @@ struct PtcgoImportView: View {
     
     var body: some View {
         VStack {
-            Text("Please paste in a PTCGO Deck list").padding()
-            TextView(
-                text: $text
-            ).padding()
+            Text("Please paste in a PTCGO Deck list.").padding()
             Button(action: importPtcgoList) {
                 Text("Enter")
             }
+            TextView(
+                text: $text
+            ).padding()
         }
     }
 }

@@ -23,76 +23,124 @@ struct ExportImageView: View {
     @Binding var showSettingsView: Bool
     @Binding var showDeckView: Bool
     
+    @State var name: String = ""
+    @State var playerId: String = ""
+    @State var dateOfBirth: String = ""
+    
     var body: some View {
-        VStack {
-            Group {
-                Text("Image Output")
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                Toggle(isOn: self.$portraitMode) {
-                    Text("Portrait mode (up and down ways image)")
-                }.padding()
-                
-                Toggle(isOn: self.$stacked) {
-                    Text("Visible stacking of cards in image")
-                    .lineLimit(nil)
-                }.padding()
-                
-                Toggle(isOn: self.$newTypeLines) {
-                    Text("New lines for Pokemon, Trainer, Energy")
-                    .lineLimit(nil)
-                }.padding()
-                
-                Toggle(isOn: self.$showTitle) {
-                    Text("Show title at the top")
-                }.padding()
-                
-                Button(action: {
-                    self.showExportImageView = false
-                    self.deck.name = self.title
+        ScrollView {
+            VStack {
+                Group {
+                    Text("Image Output")
+                        .foregroundColor(leaksMode ? .black : .gray)
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .padding(.top)
                     
-                    let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines, showTitle: self.showTitle)
+                    Toggle(isOn: self.$portraitMode) {
+                        Text("Portrait mode (up and down ways image)")
+                        .foregroundColor(leaksMode ? .black : .gray)
+                    }.padding()
                     
-                    let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
-                    UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
-                }) {
-                    ZStack {
+                    Toggle(isOn: self.$stacked) {
+                        Text("Visible stacking of cards in image")
+                            .foregroundColor(leaksMode ? .black : .gray)
+                        .lineLimit(nil)
+                    }.padding()
+                    
+                    Toggle(isOn: self.$newTypeLines) {
+                        Text("New lines for Pokémon, Trainer, Energy")
+                            .foregroundColor(leaksMode ? .black : .gray)
+                        .lineLimit(nil)
+                    }.padding()
+                    
+                    Toggle(isOn: self.$showTitle) {
+                        Text("Show title at the top")
+                        .foregroundColor(leaksMode ? .black : .gray)
+                    }.padding()
+                    
+                    Button(action: {
+                        self.showExportImageView = false
+                        self.deck.name = self.title
+                        
+                        let uiImage = UIImage.imageByMergingImages(deck: self.deck, stacked: self.stacked, portraitMode: self.portraitMode, newTypeLines: self.newTypeLines, showTitle: self.showTitle)
+                        
+                        let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
+                        UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
+                    }) {
+                        ZStack {
+                            Text("Generate")
+                        }
+                    }
+                }.disabled(!leaksMode)
+                
+    //            Image(uiImage: getDeckImage()!)
+                
+                Divider()
+                
+                Group {
+                    Text("Tournament Decklist Output")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(leaksMode ? .black : .gray)
+                        .padding()
+                    Text("Generates a PDF list of your deck for use in sanctioned Pokémon tournaments.")
+                        .foregroundColor(leaksMode ? .black : .gray)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding()
+                    TextField("Name", text: self.$name).padding()
+                    TextField("POP ID", text: self.$playerId).padding()
+                    TextField("Date of Birth (MM/DD/YYYY)", text: self.$dateOfBirth).padding()
+                    
+                    Button(action: {
+                        self.showExportImageView = false
+                        self.deck.name = self.title
+                        
+                        let uiImage = drawExportPDF(deck: self.deck, name: self.name, playerId: self.playerId, dateOfBirth: self.dateOfBirth)
+                        
+                        let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
+                        UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
+                    })
+                    {
                         Text("Generate")
+                        .padding()
+                    }
+                }.disabled(!leaksMode)
+                
+                if !leaksMode {
+                    Button(action: {
+                        self.showExportImageView = false
+                        self.showDeckView = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        self.showSettingsView = true
+                        }
+                    })
+                    {
+                        Text("Want these modes enabled? Buy the Leaks Package here.")
+                        .padding()
                     }
                 }
-            }.disabled(!leaksMode)
-            
-            if !leaksMode {
-                Button(action: {
-                    self.showExportImageView = false
-                    self.showDeckView = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.showSettingsView = true
-                    }
-                })
-                {
-                    Text("Want this mode enabled? Buy the Leaks Package here.")
+                
+                Divider()
+                
+                Group {
+                    Text("PTCGO Output")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .padding()
+                    Text("Generates a text list of your deck for import in PTCGO. Copies list to clipboard.")
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding()
+                    Button(action: {
+                        let pasteboard = UIPasteboard.general
+                        pasteboard.string = self.deck.ptcgoOutput()
+                        self.showDeckCopied = true
+                    }) {
+                        Text("Generate")
+                    }.alert(isPresented: $showDeckCopied) {
+                        Alert(title: Text("Deck list copied!"), message: Text("Paste anywhere for use."), dismissButton: .default(Text("Got it!")))
+                    }.padding()
                 }
-            }
-            
-            Divider()
-            
-            Text("PTCGO Output")
-                .font(.title)
-                .fontWeight(.bold)
-                .padding()
-            Text("Generates a text list of your deck for import in PTCGO. Copies list to clipboard.")
-                .fixedSize(horizontal: false, vertical: true)
-                .padding()
-            Button(action: {
-                let pasteboard = UIPasteboard.general
-                pasteboard.string = self.deck.ptcgoOutput()
-                self.showDeckCopied = true
-            }) {
-                Text("Generate")
-            }.alert(isPresented: $showDeckCopied) {
-                Alert(title: Text("Deck list copied!"), message: Text("Paste anywhere for use."), dismissButton: .default(Text("Got it!")))
             }
         }
     }

@@ -6,4 +6,4 @@
 //  Copyright © 2020 Jared Grimes. All rights reserved.
 //
 
-let prod = false
+let prod = true

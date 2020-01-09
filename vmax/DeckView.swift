@@ -317,6 +317,7 @@ struct DeckView: View {
     }
     
     var body: some View {
+        // duplicate code
         let supertypes = ["Pokémon", "Trainer", "Energy"]
         var supertypeCards: [[Card]] = []
         var supertypeCounts: [Int] = [0, 0, 0]
@@ -333,9 +334,9 @@ struct DeckView: View {
             ctr += 1
         }
         
-        let trainerSubtypes = ["Supporter", "Item", "Stadium"]
+        let trainerSubtypes = ["Supporter", "Item", "Pokémon Tool", "Stadium"]
         var trainerSubtypeCards: [[Card]] = []
-        var trainerSubtypeCounts: [Int] = [0, 0, 0]
+        var trainerSubtypeCounts: [Int] = [0, 0, 0, 0]
         
         ctr = 0
         if supertypeCounts[1] > 0 {
@@ -351,7 +352,7 @@ struct DeckView: View {
             }
             
             // now rearrange the trainers
-            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2]
+            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
         }
         
         var subtitle = String(self.deck.cardCount()) + " cards"
@@ -405,7 +406,7 @@ struct DeckView: View {
                     Button(action: {
                         let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething, showAds: self.$showAds))
 
-                        alertHC.preferredContentSize = CGSize(width: 300, height: 200)
+                        alertHC.preferredContentSize = CGSize(width: 1000, height: 1000)
                         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet
 
                         UIApplication.shared.windows[0].rootViewController?.present(alertHC, animated: true)

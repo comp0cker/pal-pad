@@ -73,7 +73,7 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: 
         var filteredCards = deck.cards.filter { $0.getSupertype() == supertype }
         
         if supertype == "Trainer" && filteredCards.count > 0 {
-            let trainerSubtypes = ["Supporter", "Item", "Stadium"]
+            let trainerSubtypes = ["Supporter", "Item", "Pokémon Tool", "Stadium"]
             var trainerSubtypeCards: [[Card]] = []
 
             for trainerType in trainerSubtypes {
@@ -82,7 +82,7 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: 
             }
             
             // now rearrange the trainers
-            filteredCards = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2]
+            filteredCards = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
         }
         
         for card in filteredCards {
