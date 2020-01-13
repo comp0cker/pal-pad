@@ -31,32 +31,32 @@ struct ExportImageView: View {
         ScrollView {
             VStack {
                 Group {
-                    Text("Image Output")
-                        .foregroundColor(leaksMode ? .black : .gray)
+                    Text("Image")
+                        .foregroundColor(leaksMode ? .primary : .gray)
                         .font(.title)
                         .fontWeight(.bold)
                         .padding(.top)
                     
                     Toggle(isOn: self.$portraitMode) {
                         Text("Portrait mode (up and down ways image)")
-                        .foregroundColor(leaksMode ? .black : .gray)
+                        .foregroundColor(leaksMode ? .primary : .gray)
                     }.padding()
                     
                     Toggle(isOn: self.$stacked) {
                         Text("Visible stacking of cards in image")
-                            .foregroundColor(leaksMode ? .black : .gray)
+                            .foregroundColor(leaksMode ? .primary : .gray)
                         .lineLimit(nil)
                     }.padding()
                     
                     Toggle(isOn: self.$newTypeLines) {
                         Text("New lines for Pokémon, Trainer, Energy")
-                            .foregroundColor(leaksMode ? .black : .gray)
+                            .foregroundColor(leaksMode ? .primary : .gray)
                         .lineLimit(nil)
                     }.padding()
                     
                     Toggle(isOn: self.$showTitle) {
                         Text("Show title at the top")
-                        .foregroundColor(leaksMode ? .black : .gray)
+                        .foregroundColor(leaksMode ? .primary : .gray)
                     }.padding()
                     
                     Button(action: {
@@ -79,13 +79,13 @@ struct ExportImageView: View {
                 Divider()
                 
                 Group {
-                    Text("Tournament Decklist Output")
+                    Text("Tournament Decklist")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(leaksMode ? .black : .gray)
+                        .foregroundColor(leaksMode ? .primary : .gray)
                         .padding()
-                    Text("Generates a PDF list of your deck for use in sanctioned Pokémon tournaments.")
-                        .foregroundColor(leaksMode ? .black : .gray)
+                    Text("Generates a list of your deck for use in sanctioned Pokémon tournaments. Exports as an image.")
+                        .foregroundColor(leaksMode ? .primary : .gray)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding()
                     TextField("Name", text: self.$name).padding()
@@ -124,7 +124,7 @@ struct ExportImageView: View {
                 Divider()
                 
                 Group {
-                    Text("PTCGO Output")
+                    Text("PTCGO")
                         .font(.title)
                         .fontWeight(.bold)
                         .padding()

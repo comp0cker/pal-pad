@@ -74,9 +74,8 @@ struct SearchView: View {
     func actuallySearchCards() {
         self.searchResults.clear()
         let fixedQuery = fixUpNameQuery(query: self.searchQuery)
+        let searchQueryUrl = fixUpQueryUrl(query: fixedQuery)
         
-        
-        let searchQueryUrl = fixedQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
         let url = URL(string: urlBase + "cards?name=" + searchQueryUrl)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error == nil {

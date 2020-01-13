@@ -7,3 +7,6 @@
 //
 
 let prod = true
+
+let mastersCutoff = 2004
+let juniorsCutoff = 2009

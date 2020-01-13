@@ -40,6 +40,10 @@ class Card: ObservableObject {
         
         self.count = count
     }
+    
+    func getName() -> String {
+        return content["name"] as! String
+    }
 
     func getSupertype() -> String {
         return content["supertype"] as! String

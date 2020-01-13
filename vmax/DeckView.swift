@@ -42,6 +42,7 @@ struct DeckView: View {
     @State private var newPosition: CGSize = .zero
     
     @State private var tooManyCardsAlert = false
+    @State private var tooManyPrismCardsAlert = false
     @State private var showBannedAlert = false
     @State private var showNotEnoughCards = false
     
@@ -130,56 +131,77 @@ struct DeckView: View {
         
         if editingMode {
         return AnyView(
-            ZStack {
-                Image(uiImage: cards[rowNumber * 3 + columnNumber].image)
-                self.cardCountView(index: index)
-                }
-                 .onLongPressGesture() {
-                    self.editingMode = !self.editingMode
-                    // bzzt
-                    let generator = UIImpactFeedbackGenerator(style: .medium)
-                    generator.impactOccurred()
-                 }
-                .simultaneousGesture(DragGesture()
-                .onChanged { value in
-                    if self.firstPosition == .zero {
-                        self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
+            VStack {
+                ZStack {
+                    Image(uiImage: cards[rowNumber * 3 + columnNumber].image)
+                    self.cardCountView(index: index)
                     }
-            }   // 4.
-                .onEnded { value in
-                    print("HI")
-                    self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
-                    
-                    let newWidth = Int(self.newPosition.width)
-                    let firstWidth = Int(self.firstPosition.width)
-                    
-                    if (newWidth > firstWidth + swipeLRTolerance) {
-                        if (self.deck.cards[index].count == 4 && !self.deck.cards[index].ifBasicEnergy()) {
-                            self.tooManyCardsAlert = true
-                            
-                            // bzzt
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.error)
+                     .onLongPressGesture() {
+                        self.editingMode = !self.editingMode
+                        // bzzt
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                     }
+                    .simultaneousGesture(DragGesture()
+                    .onChanged { value in
+                        if self.firstPosition == .zero {
+                            self.firstPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
                         }
-                        else {
-                            self.incrCard(index: index, incr: 1)
+                }   // 4.
+                    .onEnded { value in
+                        self.newPosition = CGSize(width: value.translation.width + self.newPosition.width, height: value.translation.height + self.newPosition.height)
+                        
+                        let newWidth = Int(self.newPosition.width)
+                        let firstWidth = Int(self.firstPosition.width)
+                        
+                        let card = self.deck.cards[index]
+                        
+                        // if we add a card
+                        if (newWidth > firstWidth + swipeLRTolerance) {
+                            
+                            // check for more than four of one card added
+                            if (card.count == 4 && !card.ifBasicEnergy()) {
+                                self.tooManyCardsAlert = true
+                                
+                                // bzzt
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.error)
+                            }
+                            // check for more than one prism star added
+                            else if (card.count == 1 && card.getName().contains("◇")) {
+                                self.tooManyPrismCardsAlert = true
+                                
+                                // bzzt
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.error)
+                            }
+                            else {
+                                self.incrCard(index: index, incr: 1)
+                                
+                                // bzzt
+                                let generator = UISelectionFeedbackGenerator()
+                                generator.selectionChanged()
+                            }
+                        }
+                        // else if we subtract a card
+                        else if (newWidth + swipeLRTolerance < firstWidth) {
+                            self.incrCard(index: index, incr: -1)
                             
                             // bzzt
                             let generator = UISelectionFeedbackGenerator()
                             generator.selectionChanged()
                         }
-                    }
-                    else if (newWidth + swipeLRTolerance < firstWidth) {
-                        self.incrCard(index: index, incr: -1)
-                        
-                        // bzzt
-                        let generator = UISelectionFeedbackGenerator()
-                        generator.selectionChanged()
-                    }
-                    self.firstPosition = .zero
-                })
-        .alert(isPresented: $tooManyCardsAlert) {
-            Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
+                        self.firstPosition = .zero
+                    })
+            .alert(isPresented: $tooManyCardsAlert) {
+                Alert(title: Text("Oops"), message: Text("You can't add more than 4 copies of a single card."), dismissButton: .default(Text("Got it!")))
+            }
+            ZStack {
+                EmptyView()
+            }
+            .alert(isPresented: $tooManyPrismCardsAlert) {
+                Alert(title: Text("Oops"), message: Text("You can't add more than 1 copy of a prism star card."), dismissButton: .default(Text("Got it!")))
+            }
         }
         )
         }
@@ -243,7 +265,7 @@ struct DeckView: View {
     func editDeck() {
         let oldDeckName = self.title
         self.title = ""
-        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks, deckName: self.$title, oldDeckName: oldDeckName))
+        let alertHC = UIHostingController(rootView: SaveDeck(deck: self.deck, savedDecks: self.savedDecks, deckName: self.$title, oldDeckName: oldDeckName, changedSomething: self.$changedSomething))
 
         alertHC.preferredContentSize = CGSize(width: 300, height: 200)
         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet

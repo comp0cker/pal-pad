@@ -61,7 +61,7 @@ struct PtcgoImportView: View {
             
             if cardSet == energyPtcgoSetCode {
                 urlString += "cards?name=" + cardName + "&setCode=" + energyVersion
-                urlString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+                urlString = fixUpQueryUrl(query: urlString)
             }
             else {
                 urlString += "cards?setCode=" + cardSet + "&number=" + cardNumber

@@ -46,6 +46,20 @@ func drawExportPDF(deck: Deck, name: String, playerId: String, dateOfBirth: Stri
         writeText(text: String(dobSplit[0]), xpos: 495, ypos: 93, img: img)
         writeText(text: String(dobSplit[1]), xpos: 520, ypos: 93, img: img)
         writeText(text: String(dobSplit[2]), xpos: 548, ypos: 93, img: img)
+        
+        // JUNIORS
+        if Int(String(dobSplit[2]))! >= juniorsCutoff {
+            writeText(text: "✔️", xpos: 372, ypos: 112, img: img)
+        }
+        // MASTERS
+        else if Int(String(dobSplit[2]))! <= mastersCutoff {
+            writeText(text: "✔️", xpos: 372, ypos: 140, img: img)
+        }
+        // SENIORS
+        else {
+            writeText(text: "✔️", xpos: 372, ypos: 126, img: img)
+        }
+
     }
     
     // duplicate code

@@ -10,6 +10,12 @@ let urlBase = "https://api.pokemontcg.io/v1/"
 let imageUrlBase = "https://images.pokemontcg.io/"
 let bannedCardsUrl = "https://www.pokemon.com/us/pokemon-tcg-banned-card-list/"
 
+func fixUpQueryUrl(query: String) -> String {
+    var q = query.replacingOccurrences(of: "’", with: "'")
+    
+    return q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+}
+
 func fixUpNameQuery(query: String) -> String {
     if query.lowercased() == "n" {
         return "\"N\""

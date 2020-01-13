@@ -84,7 +84,7 @@ class Deck: ObservableObject {
         let defaults = UserDefaults.standard
         let sets: [[String: Any]] = defaults.object(forKey: "sets") as! [[String: Any]]
         let cardName = card.content["name"] as! String
-        let cardNameUrl = cardName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        let cardNameUrl = fixUpQueryUrl(query: cardName)
         // wait i'm not so sure make sure it doesn't have a reprint
         let url = URL(string: urlBase + "cards?name=" + cardNameUrl)!
                 let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
@@ -320,9 +320,16 @@ class Deck: ObservableObject {
         for supertype in supertypes {
             output += supertype + " - " + String(supertypeCounts[ctr]) + "\n"
             for card in self.cards.filter({ $0.getSupertype() == supertype }) {
-                let ptcgoSetCode: String = setConvertToPtcgo(regularCode: card.content["setCode"] as! String)
+                let ptcgoSetCode: String = setConvertToPtcgo(card: card)
                 output += "* " + String(card.count) + " " + (card.content["name"] as! String)
-                output += " " + ptcgoSetCode + " " + (card.content["number"] as! String) + "\n"
+                
+                output += " " + ptcgoSetCode
+                if ptcgoSetCode != energyPtcgoSetCode {
+                    output += " " + (card.content["number"] as! String) + "\n"
+                }
+                else {
+                    output += " " + energyNumberConvert(name: (card.content["name"] as! String), number: (card.content["number"] as! String)) + "\n"
+                }
             }
             ctr += 1
         }

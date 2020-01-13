@@ -195,7 +195,7 @@ struct LimitlessArchetypeView: View {
                         urlString += "&setCode=" + energyVersion
                     }
                     
-                    urlString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+                    urlString = fixUpQueryUrl(query: urlString)
                     
                     if urlString.contains("%20%E2%99%A2") {
                         let arr = urlString.components(separatedBy: "%20%E2%99%A2")

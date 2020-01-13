@@ -39,6 +39,14 @@ func setConvert(ptcgoCode: String) -> String {
     return (target[0]["code"] as? String)!
 }
 
+func setConvertToPtcgo(card: Card) -> String {
+    if card.getSubtype() == "Basic" && card.getSupertype() == "Energy" {
+        return energyPtcgoSetCode
+    }
+    
+    return setConvertToPtcgo(regularCode: card.content["setCode"] as! String)
+}
+
 func setConvertToPtcgo(regularCode: String) -> String {
     let defaults = UserDefaults.standard
     let sets: [[String: Any]] = defaults.object(forKey: "sets") as! [[String: Any]]

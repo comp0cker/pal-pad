@@ -14,6 +14,7 @@ struct SaveDeck: View {
     @Binding var deckName: String
     @State var oldDeckName: String
     @State var initSet: Bool = true
+    @Binding var changedSomething: Bool
     
     func storeDeck() {
         let defaults = UserDefaults.standard
@@ -28,6 +29,12 @@ struct SaveDeck: View {
         
         // updating the original view with saved deck
         self.savedDecks.update()
+        
+        // update the name of the deck
+        self.deck.name = deckName
+        
+        // make the little
+        self.changedSomething = false
         
         // bzzt
         let generator = UINotificationFeedbackGenerator()
