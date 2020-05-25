@@ -14,6 +14,7 @@ class Deck: ObservableObject {
     @Published var name: String
     @Published var standardLegal: Bool = true
     @Published var expandedLegal: Bool = true
+    @Published var futureFormat: Bool = false
     
     init(name: String) {
         self.name = name
@@ -21,6 +22,12 @@ class Deck: ObservableObject {
     }
     
     func legality() -> String {
+        if futureFormat && standardLegal {
+            return "Future Standard"
+        }
+        if futureFormat && expandedLegal {
+            return "Future Expanded"
+        }
         if standardLegal {
             return "Standard"
         }
@@ -138,6 +145,11 @@ class Deck: ObservableObject {
     }
     
     func updateLegality(card: Card) {
+        if card.futureFormat {
+            self.futureFormat = true
+            return
+        }
+        
         if card.content["subtype"] as! String == "Basic" && card.content["supertype"] as! String == "Energy" {
             return
         }
@@ -269,6 +281,7 @@ class Deck: ObservableObject {
         for card in self.cards {
             var cardOutput = [String: String]()
             cardOutput["content"] = json(from: card.content)!
+            cardOutput["legality"] = card.legality()
             cardOutput["count"] = String(card.count)
             out.append(cardOutput)
         }

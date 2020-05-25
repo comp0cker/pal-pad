@@ -65,7 +65,7 @@ struct ContentView: View {
     
     @State var changedSomething: Bool = false
     
-    @State var showAds: Bool = !(UserDefaults.standard.bool(forKey: "adsRemoved") || !prod)
+    @State var showAds: Bool = false
     @State var leaksMode: Bool = UserDefaults.standard.bool(forKey: "leaksMode") || !prod
 
     func deckOn() {
@@ -79,6 +79,11 @@ struct ContentView: View {
         for card in json {
             if actuallyRun {
                 let content = card["content"]!
+                var legality = ""
+                if card["legality"] != nil {
+                    legality = card["legality"]!
+                }
+                
                 let count = Int(card["count"]!)!
                 
                 let data = Data(content.utf8)
@@ -87,8 +92,18 @@ struct ContentView: View {
                     if let cardDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                         
                         var c = Card(content: cardDict)
+                        
+                        if legality != "" {
+                            if legality.contains("Future") {
+                                c.futureFormat = true
+                            }
+                            if legality.contains("Expanded") {
+                                c.standardLegal = false
+                            }
+                        }
+                        
                         // DUPLICATE CODE
-                        let imageUrl = c.getImageUrl(cardDict: cardDict)
+                        let imageUrl = c.getImageUrl()
                         let task = URLSession.shared.dataTask(with: imageUrl) { (imgData, response, error) in
                             if error == nil {
                                 c.image = c.getImageFromData(data: imgData!)
@@ -100,6 +115,19 @@ struct ContentView: View {
                     }
                 } catch let error as NSError {
                     print("Failed to load: \(error.localizedDescription)")
+                }
+            }
+            else {
+                let legality = card["legality"]!
+                if legality.contains("Future") {
+                    self.deck.futureFormat = true
+                }
+                if legality.contains("Expanded") {
+                    self.deck.standardLegal = false
+                }
+                if legality.contains("Unlimited") {
+                    self.deck.standardLegal = false
+                    self.deck.expandedLegal = false
                 }
             }
             actuallyRun = true
@@ -129,7 +157,7 @@ struct ContentView: View {
                 return legality!
             }
             else {
-                print("poop")
+                print("error")
             }
         } catch let error as NSError {
             print("Failed to load: \(error.localizedDescription)")
@@ -139,7 +167,7 @@ struct ContentView: View {
     
     var body: some View {
         var decks: [HomeView] = self.savedDecks.list.map {HomeView(name: $0.key, legality: getLegality(deck: $0.value), deck: $0.value)}
-        var legalities = ["Standard", "Expanded", "Unlimited"]
+        var legalities = ["Standard", "Expanded", "Future Standard", "Future Expanded", "Unlimited"]
         var legalityDecks: [[HomeView]] = []
         for legality in legalities {
             legalityDecks.append(decks.filter{$0.legality == legality})

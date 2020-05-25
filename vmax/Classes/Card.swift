@@ -18,6 +18,70 @@ class Card: ObservableObject {
     @Published var expandedLegal: Bool = true
     @Published var standardBanned: Bool = false
     @Published var expandedBanned: Bool = false
+    @Published var futureFormat: Bool = false
+    
+    // for limitless future format import
+    init(name: String, imageUrl: String, cardType: String, id: String, setCode: String, number: String) {
+        func getSuperTypeFromCardType(cardType: String) -> String {
+            if cardType.contains("Pokemon") {
+                return "Pokémon"
+            }
+            if cardType.contains("Trainer") {
+                return "Trainer"
+            }
+            if cardType.contains("Energy") {
+                return "Energy"
+            }
+            return ""
+        }
+        
+        func getSubTypeFromCardType(cardType: String) -> String {
+            if cardType.contains("Basic") {
+                return "Basic"
+            }
+            if cardType.contains("Stage 1") {
+                return "Stage 1"
+            }
+            if cardType.contains("Stage 2") {
+                return "Stage 2"
+            }
+            if cardType.contains("Supporter") {
+                return "Supporter"
+            }
+            if cardType.contains("Item") {
+                return "Item"
+            }
+            if cardType.contains("Tool") {
+                return "Pokémon Tool"
+            }
+            if cardType.contains("Stadium") {
+                return "Stadium"
+            }
+            if cardType.contains("Energy") && cardType.contains("Basic") {
+                return "Basic"
+            }
+            if cardType.contains("Energy") && cardType.contains("Special") {
+                return "Special"
+            }
+            return ""
+        }
+        
+        self.futureFormat = true
+        self.standardLegal = false
+        self.expandedLegal = false
+        
+        var content: [String: Any] = [:]
+        content["name"] = name
+        content["imageUrl"] = imageUrl
+        content["supertype"] = getSuperTypeFromCardType(cardType: cardType)
+        content["subtype"] = getSubTypeFromCardType(cardType: cardType)
+        content["id"] = id // just in case
+        
+        self.content = content
+        self.id = id
+        
+        self.count = 1
+    }
     
     init(content: [String: Any]) {
         self.content = content
@@ -41,6 +105,19 @@ class Card: ObservableObject {
         self.count = count
     }
     
+    func legality() -> String {
+        if futureFormat {
+            return "Future"
+        }
+        if standardLegal {
+            return "Standard"
+        }
+        if expandedLegal {
+            return "Expanded"
+        }
+        return "Unlimited"
+    }
+    
     func getName() -> String {
         return content["name"] as! String
     }
@@ -57,17 +134,22 @@ class Card: ObservableObject {
         return content["supertype"] as! String == "Energy" && content["subtype"] as! String == "Basic"
     }
     
-    func getImageUrl(cardDict: [String: Any]) -> URL {
+    func getImageUrl() -> URL {
+        if self.futureFormat {
+            print(content["imageUrl"] as! String)
+            return URL(string: content["imageUrl"] as! String)!
+        }
+        
         var url = imageUrlBase
         
-        if let setCode = cardDict["setCode"] as? String {
+        if let setCode = content["setCode"] as? String {
             url += setCode + "/"
         }
-        if let number = cardDict["number"] as? String {
+        if let number = content["number"] as? String {
             url += number + ".png"
         }
         
-        url = handleImageUrlExceptions(contents: cardDict)
+        url = handleImageUrlExceptions(contents: content)
         
         return URL(string: url)!
     }

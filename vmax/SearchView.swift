@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import SwiftSoup
 import Combine
 import GoogleMobileAds
 
@@ -54,13 +55,19 @@ struct SearchView: View {
     @Binding var changedSomething: Bool
     
     @State var onlyShowLegalities: Bool = true
+    @State var loadFutureFormatCards: Bool = false
     
     @Binding var showAds: Bool
     
     func addCardToSearch(card: [String: Any]) {
         // DUPLICATE CODE
         let c = Card(content: card)
-        let imageUrl = c.getImageUrl(cardDict: card)
+        addCardToSearch(c: c)
+    }
+    
+    func addCardToSearch(c: Card) {
+        // DUPLICATE CODE
+        let imageUrl = c.getImageUrl()
         let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
             if error == nil {
                 c.image = c.getImageFromData(data: data!)
@@ -76,6 +83,10 @@ struct SearchView: View {
         let fixedQuery = fixUpNameQuery(query: self.searchQuery)
         let searchQueryUrl = fixUpQueryUrl(query: fixedQuery)
         
+        // if the toggle is on, search future format cards
+        if loadFutureFormatCards {
+            self.searchFutureFormatCards()
+        }
         let url = URL(string: urlBase + "cards?name=" + searchQueryUrl)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if error == nil {
@@ -92,6 +103,45 @@ struct SearchView: View {
             }
             else {
                 print(error)
+            }
+        }
+        task.resume()
+    }
+    
+    func searchFutureFormatCards() {
+        let url = URL(string: limitlessUrlBase + "/translations/")!
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in  guard let data = data else {
+            print("data was nil")
+            return
+          }
+        guard let html = String(data: data, encoding: .utf8) else {
+            print("couldn't cast data into String")
+            return
+          }
+            
+            guard let doc: Document = try? SwiftSoup.parse(html) else { return }
+            guard let translations = try? doc.getElementsByClass("card-translation") else { return }
+            
+            let queryFixed = fixUpNameQuery(query: self.searchQuery)
+            
+            for card in translations {
+                guard let name = try? card.getElementsByClass("card-translation-name").text() else { return }
+                
+                if !name.lowercased().contains(queryFixed.lowercased()) {
+                    continue
+                }
+                
+                guard let imageUrl = try? card.getElementsByClass("card-translation-image").first()!.attr("src") else { return }
+                guard let cardType = try? card.getElementsByClass("card-translation-type").text() else { return }
+                guard let id = try? card.getElementsByClass("card-translation-bottom").text() else { return }
+                
+                let setCode = String(id.split(separator: " ")[0])
+                let number = String(id.split(separator: " ")[1].replacingOccurrences(of: "#", with: ""))
+                
+                let c = Card(name: name, imageUrl: imageUrl, cardType: cardType, id: id, setCode: setCode, number: number)
+                print(c.getName())
+                
+                self.addCardToSearch(c: c)
             }
         }
         task.resume()
@@ -134,7 +184,9 @@ struct SearchView: View {
         }
     }
     
-    func searchOff(card: Card) {
+    func searchOff(card: Card, incr: Int) {
+        card.count = incr
+        
         // bzzt
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
@@ -146,22 +198,32 @@ struct SearchView: View {
     }
     
     func searchResultView(rowNumber: Int, columnNumber: Int, cards: [Card]) -> some View {
-        return Button(action: {
-            self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber])})
-        {
-            rowNumber * 3 + columnNumber >= cards.count ? Image(systemName: "card") : Image(uiImage: cards[rowNumber * 3 + columnNumber].image).renderingMode(.original)
-        }
+        return ZStack {
+                rowNumber * 3 + columnNumber >= cards.count ? Image(systemName: "card") : Image(uiImage: cards[rowNumber * 3 + columnNumber].image).renderingMode(.original)
+                }
+
+            .onTapGesture {
+                self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber], incr: 1)
+            }
+            .onLongPressGesture() {
+                self.searchOff(card: rowNumber * 3 + columnNumber >= cards.count ? cards[0] : cards[rowNumber * 3 + columnNumber], incr: 4)
+            }
     }
     
     func ifCardLegal(card: Card, legality: String) -> Bool {
-        if legality == "Standard" {
-            return card.standardLegal
+        if legality == "Future" {
+            return card.futureFormat
         }
-        if legality == "Expanded" {
-            return card.expandedLegal && !card.standardLegal
-        }
-        if legality == "Unlimited" {
-            return !card.expandedLegal && !card.standardLegal
+        if !card.futureFormat {
+            if legality == "Standard" {
+                return card.standardLegal
+            }
+            if legality == "Expanded" {
+                return card.expandedLegal && !card.standardLegal
+            }
+            if legality == "Unlimited" {
+                return !card.expandedLegal && !card.standardLegal
+            }
         }
 
         return false
@@ -188,6 +250,9 @@ struct SearchView: View {
             }
         }
         
+        if self.loadFutureFormatCards {
+            legalities = ["Future"] + legalities
+        }
         for legality in legalities {
             let filteredCards = self.searchResults.cards.filter { self.ifCardLegal(card: $0, legality: legality) }
             legalCards.append(filteredCards)
@@ -202,11 +267,16 @@ struct SearchView: View {
                     }
                 }.padding()
             
-                Toggle(isOn: self.$onlyShowLegalities) {
-                    Text("Only show legal cards for your deck")
-                }.padding()
+                HStack {
+                    Toggle(isOn: self.$onlyShowLegalities) {
+                        Text("Only show legal cards for your deck")
+                    }.padding()
+                    Toggle(isOn: self.$loadFutureFormatCards) {
+                        Text("Search future format cards")
+                    }.padding()
+                }
                 
-                !searchResultsLoaded ? nil : ScrollView {
+                ScrollView {
                     VStack(alignment: .leading) {
                         HStack {
                             Spacer()

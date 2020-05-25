@@ -96,7 +96,6 @@ struct LimitlessArchetypeView: View {
             print("couldn't cast data into String")
             return
           }
-            print("yuhyuh")
             guard let doc: Document = try? SwiftSoup.parse(html) else { return }
             guard let table = try? doc.getElementsByClass("rankingtable").first() else { return }
             guard let decks = try? table.select("tr") else { return }
@@ -216,7 +215,7 @@ struct LimitlessArchetypeView: View {
                                     let content = cards[0]
                                     let c = Card(content: content, count: Int(cardCount)!)
                                     
-                                    let imageUrl = c.getImageUrl(cardDict: content)
+                                    let imageUrl = c.getImageUrl()
                                     let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
                                         if error == nil {
                                             c.image = c.getImageFromData(data: data!)

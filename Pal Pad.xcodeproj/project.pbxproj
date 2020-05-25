@@ -19,7 +19,6 @@
 		B30BF57223AD9F3F008F7E60 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BF57123AD9F3F008F7E60 /* SearchView.swift */; };
 		B30BF57A23B03DBC008F7E60 /* DeckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BF57923B03DBC008F7E60 /* DeckView.swift */; };
 		B30BF57C23B1BA3F008F7E60 /* SaveDeck.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30BF57B23B1BA3F008F7E60 /* SaveDeck.swift */; };
-		B331B2FB23C6642A00B0D3EB /* list.pdf in Resources */ = {isa = PBXBuildFile; fileRef = B331B2FA23C6642900B0D3EB /* list.pdf */; };
 		B331B2FD23C6649100B0D3EB /* ExportTournamentList.swift in Sources */ = {isa = PBXBuildFile; fileRef = B331B2FC23C6649100B0D3EB /* ExportTournamentList.swift */; };
 		B33EFA1923B65F0E001E0565 /* ExportImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B33EFA1823B65F0E001E0565 /* ExportImageView.swift */; };
 		B33EFA1B23B6B472001E0565 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = B33EFA1A23B6B472001E0565 /* API.swift */; };
@@ -375,7 +374,6 @@
 			files = (
 				B3C3E3DF23C2826100ECAFBB /* IAPProductIDs.plist in Resources */,
 				B30BF54E23AD5CA7008F7E60 /* LaunchScreen.storyboard in Resources */,
-				B331B2FB23C6642A00B0D3EB /* list.pdf in Resources */,
 				B30BF54B23AD5CA7008F7E60 /* Preview Assets.xcassets in Resources */,
 				B30BF54823AD5CA7008F7E60 /* Assets.xcassets in Resources */,
 			);
@@ -692,7 +690,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_ASSET_PATHS = "\"vmax/Preview Content\"";
 				DEVELOPMENT_TEAM = MR26CCZ496;
 				ENABLE_PREVIEWS = YES;
@@ -701,7 +699,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jaredgrimes.palpad;
 				PRODUCT_NAME = "Pal Pad";
 				SWIFT_VERSION = 5.0;
@@ -715,7 +713,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_ASSET_PATHS = "\"vmax/Preview Content\"";
 				DEVELOPMENT_TEAM = MR26CCZ496;
 				ENABLE_PREVIEWS = YES;
@@ -724,7 +722,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jaredgrimes.palpad;
 				PRODUCT_NAME = "Pal Pad";
 				SWIFT_VERSION = 5.0;

@@ -78,7 +78,11 @@ extension IAPManager: SKPaymentTransactionObserver {
                      onBuyProductHandler?(.success(true))
                      SKPaymentQueue.default().finishTransaction(transaction)
               
-             case .restored: break
+             case .restored:
+                guard let productIdentifier = transaction.original?.payment.productIdentifier else { return }
+                
+                   print("restore... \(productIdentifier)")
+                   SKPaymentQueue.default().finishTransaction(transaction)
               
              case .failed:
              if let error = transaction.error as? SKError {
@@ -104,6 +108,10 @@ extension IAPManager: SKPaymentTransactionObserver {
      
     func stopObserving() {
         SKPaymentQueue.default().remove(self)
+    }
+    
+    public func restorePurchases() {
+      SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
     func canMakePayments() -> Bool {

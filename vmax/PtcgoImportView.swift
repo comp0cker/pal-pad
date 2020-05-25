@@ -82,7 +82,7 @@ struct PtcgoImportView: View {
                             let content = cards[0]
                             let c = Card(content: content, count: cardCount!)
                             
-                            let imageUrl = c.getImageUrl(cardDict: content)
+                            let imageUrl = c.getImageUrl()
                             let task = URLSession.shared.dataTask(with: imageUrl) { (data, response, error) in
                                 if error == nil {
                                     c.image = c.getImageFromData(data: data!)

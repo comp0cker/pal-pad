@@ -81,8 +81,15 @@ func drawCardImage(deck: Deck, stacked: Bool, portraitMode: Bool, newTypeLines: 
                 trainerSubtypeCards.append(filteredCards)
             }
             
-            // now rearrange the trainers
-            filteredCards = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
+                trainerSubtypeCards[0] = trainerSubtypeCards[0].sorted(by: { $0.count > $1.count })
+                trainerSubtypeCards[1] = trainerSubtypeCards[0].sorted(by: { $0.count > $1.count })
+                trainerSubtypeCards[2] = trainerSubtypeCards[0].sorted(by: { $0.count > $1.count })
+                
+                // now rearrange the trainers
+                filteredCards = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
+            }
+        else if supertype != "Trainer" {
+            filteredCards = filteredCards.sorted(by: { $0.count > $1.count })
         }
         
         for card in filteredCards {

@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import PDFKit
 
 struct ExportImageView: View {
     @State var portraitMode: Bool = true
@@ -26,6 +27,22 @@ struct ExportImageView: View {
     @State var name: String = ""
     @State var playerId: String = ""
     @State var dateOfBirth: String = ""
+    
+    func leaksButton() -> some View {
+        return AnyView(
+            Button(action: {
+                self.showExportImageView = false
+                self.showDeckView = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.showSettingsView = true
+                }
+            })
+            {
+                Text("Want this mode enabled? Buy the Leaks Package here.")
+                .padding()
+            }
+        )
+    }
     
     var body: some View {
         ScrollView {
@@ -74,6 +91,10 @@ struct ExportImageView: View {
                     }
                 }.disabled(!leaksMode)
                 
+                if !leaksMode {
+                    self.leaksButton()
+                }
+                
     //            Image(uiImage: getDeckImage()!)
                 
                 Divider()
@@ -82,43 +103,60 @@ struct ExportImageView: View {
                     Text("Tournament Decklist")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(leaksMode ? .primary : .gray)
+                        .foregroundColor(leaksMode && !deck.futureFormat ? .primary : .gray)
                         .padding()
                     Text("Generates a list of your deck for use in sanctioned Pokémon tournaments. Exports as an image.")
-                        .foregroundColor(leaksMode ? .primary : .gray)
+                        .foregroundColor(leaksMode && !deck.futureFormat ? .primary : .gray)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding()
                     TextField("Name", text: self.$name).padding()
                     TextField("POP ID", text: self.$playerId).padding()
                     TextField("Date of Birth (MM/DD/YYYY)", text: self.$dateOfBirth).padding()
                     
-                    Button(action: {
-                        self.showExportImageView = false
-                        self.deck.name = self.title
+                    HStack {
+                        Button(action: {
+                            self.showExportImageView = false
+                            self.deck.name = self.title
+                            
+                            let uiImage = drawExportPDF(deck: self.deck, name: self.name, playerId: self.playerId, dateOfBirth: self.dateOfBirth)
+                            
+                            let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
+                            UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
+                        })
+                        {
+                            Text("Generate Image")
+                            .padding()
+                        }
                         
-                        let uiImage = drawExportPDF(deck: self.deck, name: self.name, playerId: self.playerId, dateOfBirth: self.dateOfBirth)
-                        
-                        let vc = UIActivityViewController(activityItems: [uiImage], applicationActivities: [])
-                        UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
-                    })
-                    {
-                        Text("Generate")
-                        .padding()
+                        Button(action: {
+                            self.showExportImageView = false
+                            self.deck.name = self.title
+                            
+                            let uiImage = drawExportPDF(deck: self.deck, name: self.name, playerId: self.playerId, dateOfBirth: self.dateOfBirth)
+                            
+                            let pdfDocument = PDFDocument()
+                            let pdfPage = PDFPage(image: uiImage)
+                            pdfDocument.insert(pdfPage!, at: 0)
+                            let data = pdfDocument.dataRepresentation()
+                            
+                            let vc = UIActivityViewController(activityItems: [data], applicationActivities: [])
+                            UIApplication.shared.windows[1].rootViewController?.present(vc, animated: true)
+                        })
+                        {
+                            Text("Generate PDF")
+                            .padding()
+                        }
                     }
-                }.disabled(!leaksMode)
+                }.disabled(!leaksMode || deck.futureFormat)
                 
                 if !leaksMode {
-                    Button(action: {
-                        self.showExportImageView = false
-                        self.showDeckView = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        self.showSettingsView = true
-                        }
-                    })
-                    {
-                        Text("Want these modes enabled? Buy the Leaks Package here.")
-                        .padding()
-                    }
+                    self.leaksButton()
+                }
+                
+                if deck.futureFormat {
+                    Text("Cannot export tournament deck list of a future format deck.")
+                        .foregroundColor(.red)
+                    .padding()
                 }
                 
                 Divider()
@@ -127,9 +165,11 @@ struct ExportImageView: View {
                     Text("PTCGO")
                         .font(.title)
                         .fontWeight(.bold)
+                        .foregroundColor(leaksMode && !deck.futureFormat ? .primary : .gray)
                         .padding()
                     Text("Generates a text list of your deck for import in PTCGO. Copies list to clipboard.")
                         .fixedSize(horizontal: false, vertical: true)
+                        .foregroundColor(leaksMode && !deck.futureFormat ? .primary : .gray)
                         .padding()
                     Button(action: {
                         let pasteboard = UIPasteboard.general
@@ -140,6 +180,12 @@ struct ExportImageView: View {
                     }.alert(isPresented: $showDeckCopied) {
                         Alert(title: Text("Deck list copied!"), message: Text("Paste anywhere for use."), dismissButton: .default(Text("Got it!")))
                     }.padding()
+                }.disabled(deck.futureFormat)
+                
+                if deck.futureFormat {
+                    Text("Cannot export PTCGO list for a future format deck.")
+                        .foregroundColor(.red)
+                        .padding()
                 }
             }
         }

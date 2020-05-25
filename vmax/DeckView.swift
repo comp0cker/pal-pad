@@ -80,7 +80,11 @@ struct DeckView: View {
     }
     
     func cardBanned(index: Int) -> Bool {
-        return (self.deck.cards[index].standardBanned && self.deck.legality() != "Expanded") || (self.deck.cards[index].expandedBanned && self.deck.legality() != "Standard")
+        if self.deck.legality() == "Unlimited" {
+            return self.deck.cards[index].standardBanned || self.deck.cards[index].expandedBanned
+        }
+        
+        return false
     }
     
     func cardCountView(index: Int) -> some View {
@@ -400,7 +404,7 @@ struct DeckView: View {
 
         }
         
-        let legality = deck.standardLegal ? "Standard" : deck.expandedLegal ? "Expanded" : "Unlimited"
+        let legality = deck.legality()
         
         let formatView = Text(legality)
         .font(.title)
@@ -426,7 +430,7 @@ struct DeckView: View {
                     self.export()
                     
                     Button(action: {
-                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething, showAds: self.$showAds))
+                        let alertHC = UIHostingController(rootView: SearchView(deck: self.deck, changedSomething: self.$changedSomething, loadFutureFormatCards: self.deck.futureFormat, showAds: self.$showAds))
 
                         alertHC.preferredContentSize = CGSize(width: 1000, height: 1000)
                         alertHC.modalPresentationStyle = UIModalPresentationStyle.formSheet

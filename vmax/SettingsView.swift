@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Binding var showAds: Bool
     @Binding var leaksMode: Bool
     @State var products: [SKProduct] = []
+    @State var purchasesRestored: Bool = false
     
     func purchase(product: SKProduct) -> Bool {
         if !IAPManager.shared.canMakePayments() {
@@ -111,14 +112,23 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding()
                 
+                Button(action: {
+                    IAPManager.shared.restorePurchases()
+                    self.purchasesRestored = true
+                }) {
+                    Text("Restore purchases")
+                }.alert(isPresented: $purchasesRestored) {
+                    Alert(title: Text("Success!"), message: Text("Purchases Restored!"),
+                        dismissButton: .default(Text("Done")))
+                }
+                
                 ForEach (0..<self.products.count, id: \.self) { p in
                     Group {
                         Divider()
-                        Text(self.products[p].localizedTitle + " 🤭")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        
                         if self.products[p].productIdentifier == "com.jaredgrimes.palpad.leakspackage" {
+                            Text(self.products[p].localizedTitle + " 🤭")
+                                .font(.title)
+                                .fontWeight(.bold)
                             Text("No leaks? Nah. You gotta leak to your homies. Even if there is no HeyFonte. Which is why I made a seamless way to do so - right from the Export view in your deck. You can export your deck as an image, either in portrait or landscape mode! Save this image to your phone, send it to anyone you want, or even upload it to Facebook - your choice.")
                                 .fixedSize(horizontal: false, vertical: true)
                             
@@ -129,7 +139,10 @@ struct SettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         else {
-                            Text(self.products[p].localizedDescription)
+                            Text(self.products[p].localizedTitle)
+                                .font(.title)
+                                .fontWeight(.bold)
+                            Text("Remove all ads. There are currently no ads - purchase to help support the developer 😊")
                         }
                         
                         Button(action: {

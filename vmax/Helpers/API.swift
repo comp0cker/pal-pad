@@ -21,19 +21,20 @@ func fixUpNameQuery(query: String) -> String {
         return "\"N\""
     }
     
-    if query.lowercased().contains(" ex") {
-        return query.lowercased().replacingOccurrences(of: " ex", with: "-ex")
-    }
-    if query.lowercased().contains(" gx") {
-        return query.replacingOccurrences(of: " gx", with: "-gx")
+    var q = query.lowercased()
+    
+    q = q.replacingOccurrences(of: " ex", with: "-ex")
+    q = q.replacingOccurrences(of: " gx", with: "-gx")
+    q = q.replacingOccurrences(of: " prism star", with: " ◇")
+    q = q.replacingOccurrences(of: " prism", with: " ◇")
+    q = q.replacingOccurrences(of: " prism", with: " ◇")
+    
+    if q.suffix(2) == " v" {
+        q = q.replacingOccurrences(of: " v", with: "-v")
     }
     
-    if query.lowercased().contains(" prism star") {
-        return query.lowercased().replacingOccurrences(of: " prism star", with: " ◇")
+    if q.suffix(5) == " vmax" {
+        q = q.replacingOccurrences(of: " vmax", with: "-vmax")
     }
-    if query.lowercased().contains(" prism") {
-        return query.lowercased().replacingOccurrences(of: " prism", with: " ◇")
-    }
-    
-    return query
+    return q
 }

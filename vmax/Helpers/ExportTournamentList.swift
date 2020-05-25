@@ -96,9 +96,16 @@ func drawExportPDF(deck: Deck, name: String, playerId: String, dateOfBirth: Stri
             ctr += 1
         }
         
-        // now rearrange the trainers
-        supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
-    }
+            trainerSubtypeCards[0] = trainerSubtypeCards[0].sorted(by: { $0.count > $1.count })
+            trainerSubtypeCards[1] = trainerSubtypeCards[1].sorted(by: { $0.count > $1.count })
+            trainerSubtypeCards[2] = trainerSubtypeCards[2].sorted(by: { $0.count > $1.count })
+            
+            // now rearrange the trainers
+            supertypeCards[1] = trainerSubtypeCards[0] + trainerSubtypeCards[1] + trainerSubtypeCards[2] + trainerSubtypeCards[3]
+        }
+        
+        supertypeCards[0] = supertypeCards[0].sorted(by: { $0.count > $1.count })
+        supertypeCards[2] = supertypeCards[2].sorted(by: { $0.count > $1.count })
     
     let xoffset = 280
     var yoffset = 196
